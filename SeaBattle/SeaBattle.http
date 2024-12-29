@@ -1,0 +1,6 @@
+@SeaBattle_HostAddress = http://localhost:5024
+
+GET {{SeaBattle_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
