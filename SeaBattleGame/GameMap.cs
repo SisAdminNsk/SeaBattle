@@ -11,56 +11,54 @@ namespace SeaBattleGame
 
         public event IGameMap.OnShipHitted? ShipHitted;
         public event IGameMap.OnShipDestroyed? ShipDestroyed;
-
-        public void Hit(GameCell gameCell)
+        public event IGameMap.OnHitMissed? HitMissed;
+        private void InitializeMap(int size)
         {
-            var shipOrNull = IsShipOnCell(gameCell);
+            _size = size;
+        }
+        private void FillDestroyedShipArea(Ship? destroyedShip)
+        {
+            var neighbours = GetNeighboursCells(destroyedShip);
 
-            if(shipOrNull is not null)
+            foreach (var neighbour in neighbours)
             {
-                var cell = _shipToLocation[shipOrNull].Find(cell => cell.Equals(gameCell));
-
-                if (!cell.Hitted)
-                {
-                    cell.Hitted = true;
-                    ShipHitted?.Invoke(shipOrNull, this, gameCell);
-                }
-
-                if (IsShipDestroyed(shipOrNull))
-                {
-                    ShipDestroyed?.Invoke(shipOrNull, this, gameCell);
-                }
+                _cellToShip.Keys.FirstOrDefault(x => x.CompareValue(neighbour)).Hitted = true;
             }
         }
-        private bool IsShipDestroyed(Ship ship)
+        List<GameCell> GetNeighboursCells(Ship ship)
         {
             var shipLocation = _shipToLocation[ship];
 
-            if(shipLocation.TrueForAll(cell => cell.Hitted))
+            HashSet<GameCell> neighbours = new();
+
+            foreach (var cell in shipLocation)
             {
-                return true;
+                List<GameCell> potentialNeighbours = new()
+                {
+                    new GameCell(cell.X - 1, cell.Y),
+                    new GameCell(cell.X + 1, cell.Y),
+                    new GameCell(cell.X, cell.Y - 1),
+                    new GameCell(cell.X, cell.Y + 1)
+                };
+
+                foreach (var neighbour in potentialNeighbours)
+                {
+                    if (shipLocation.TrueForAll(x => !x.CompareValue(neighbour)) && IsCellOnGameMap(neighbour))
+                    {
+                        neighbours.Add(neighbour);
+                    }
+                }
             }
 
-            return false;
+            return neighbours.ToList();
         }
-
-        public bool ValidateHit(GameCell hit)
+        private bool IsCellOnGameMap(GameCell cell)
         {
-            if(hit.X >  _size) return false;
-
-            if(hit.Y > _size) return false;
-
-            return true;
+            return (cell.X >= 0 && cell.X <= _size) && (cell.Y >= 0 && cell.Y <= _size);
         }
-
-        public Ship? IsShipOnCell(GameCell gameCell)
-        {
-            return _cellToShip[gameCell];
-        }
-
         public bool TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation)
         {
-            if(!ValidateShipLocation(ship, startPosition, shipOrientation))
+            if (!ValidateShipLocation(ship, startPosition, shipOrientation))
             {
                 return false;
             }
@@ -78,7 +76,7 @@ namespace SeaBattleGame
 
                 if (shipOrientation == ShipOrientation.Horizontal)
                 {
-                     gameCell = new GameCell(startPosition.X + i, startPosition.Y);
+                    gameCell = new GameCell(startPosition.X + i, startPosition.Y);
                 }
 
                 if (shipOrientation == ShipOrientation.Vertical)
@@ -92,39 +90,129 @@ namespace SeaBattleGame
             }
 
             _shipToLocation.Add(ship, shipLocation);
-            
+
             return true;
         }
+
+        public void Hit(GameCell gameCell)
+        {
+            var shipOrNull = IsShipOnCell(gameCell);
+
+            if (shipOrNull is not null)
+            {
+                var cell = _shipToLocation[shipOrNull].Find(cell => cell.Equals(gameCell));
+
+                if (!cell.Hitted)
+                {
+                    cell.Hitted = true;
+                    ShipHitted?.Invoke(shipOrNull, this, gameCell);
+                }
+
+                if (IsShipDestroyed(shipOrNull))
+                {
+                    ShipDestroyed?.Invoke(shipOrNull, this, gameCell);
+                }
+            }
+            else
+            {
+                HitMissed?.Invoke(this, gameCell);
+            }
+        }
+
+        private bool IsShipDestroyed(Ship ship)
+        {
+            var shipLocation = _shipToLocation[ship];
+
+            if (shipLocation.TrueForAll(cell => cell.Hitted))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public Ship? IsShipOnCell(GameCell gameCell)
+        {
+            return _cellToShip[gameCell];
+        }
+
         private bool ValidateShipLocation(Ship ship, GameCell startPosition, ShipOrientation shipOrientation)
         {
-            if(shipOrientation == ShipOrientation.Vertical)
+            if (shipOrientation == ShipOrientation.Vertical)
             {
-                if (startPosition.X > _size || startPosition.Y + ship.Size > _size)
+                if (startPosition.Y + ship.Size > _size || startPosition.X >= _size) return false;
+            }
+            else
+            {
+                if (startPosition.X + ship.Size > _size || startPosition.Y >= _size) return false; 
+            }
+
+            List<GameCell> shipCells = GetShipCells(ship, startPosition, shipOrientation);
+
+            foreach (var cell in shipCells)
+            {
+                if (_cellToShip.ContainsKey(cell) && _cellToShip[cell] != null)
                 {
-                    return false;
+                    return false; 
                 }
             }
 
-            if(shipOrientation == ShipOrientation.Horizontal)
+            foreach (var existingShipPair in _shipToLocation)
             {
-                if (startPosition.X + ship.Size  > _size || startPosition.Y > _size)
+                Ship existingShip = existingShipPair.Key;
+                List<GameCell> existingShipCells = existingShipPair.Value;
+
+                if (existingShip == ship) continue;
+
+
+                foreach (var shipCell in shipCells)
                 {
-                    return false;
+                    foreach (var existingCell in existingShipCells)
+                    {
+                        if (AreCellsAdjacent(shipCell, existingCell))
+                        {
+                            return false;
+                        }
+                    }
                 }
             }
 
             return true;
         }
+        private List<GameCell> GetShipCells(Ship ship, GameCell startPosition, ShipOrientation shipOrientation)
+        {
+            List<GameCell> cells = new List<GameCell>();
+
+            if (shipOrientation == ShipOrientation.Vertical)
+            {
+                for (int i = 0; i < ship.Size; i++)
+                {
+                    cells.Add(new GameCell { X = startPosition.X, Y = startPosition.Y + i });
+                }
+            }
+            else
+            {
+                for (int i = 0; i < ship.Size; i++)
+                {
+                    cells.Add(new GameCell { X = startPosition.X + i, Y = startPosition.Y });
+                }
+            }
+
+            return cells;
+        }
+
+        private bool AreCellsAdjacent(GameCell cell1, GameCell cell2)
+        {
+            int dx = Math.Abs(cell1.X - cell2.X);
+            int dy = Math.Abs(cell1.Y - cell2.Y);
+
+            return (dx <= 1 && dy <= 1) && !(dx == 0 && dy == 0);
+        }
+
         public GameMap(int size)
         {
             InitializeMap(size);
         }
-
-        private void InitializeMap(int size)
-        {
-            _size = size;
-        }
-
         public bool ChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation)
         {
             if (!_shipToLocation.ContainsKey(ship))
@@ -155,7 +243,6 @@ namespace SeaBattleGame
                 }
 
                 _cellToShip[gameCell] = ship;
-
                 shipLocation.Add(gameCell);
             }
 

@@ -10,10 +10,14 @@
             X = x;
             Y = y;
         }
-
         public GameCell()
         {
 
+        }
+
+        public bool CompareValue(GameCell other)
+        {
+            return other.X == X && other.Y == Y;
         }
     }
 }

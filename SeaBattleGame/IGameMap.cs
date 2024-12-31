@@ -9,9 +9,11 @@
     {
         delegate void OnShipHitted(Ship? ship, IGameMap sender, GameCell hittedCell);
         delegate void OnShipDestroyed(Ship? ship, IGameMap sender, GameCell lastHittedCell);
+        delegate void OnHitMissed(IGameMap sender, GameCell hittedCell); 
 
         event OnShipHitted? ShipHitted;
         event OnShipDestroyed? ShipDestroyed;
+        event OnHitMissed? HitMissed;
         bool TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation);
         bool ChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation);
         Ship? IsShipOnCell(GameCell gameCell);

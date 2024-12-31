@@ -2,11 +2,14 @@
 {
     public class Ship
     {
+        public string Id { get; private set; }
         public bool Killed { get; set; } = false;
         public int Size { get; private set; }
-        public Ship(int size) 
+        public Ship(int size)
         {
             Size = size;
+
+            Id = new Guid().ToString();
         }
     }
 }
