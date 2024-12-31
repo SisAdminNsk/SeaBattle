@@ -2,15 +2,11 @@
 {
     public class Ship
     {
-        private List<GameCell> _body = new();
-        public bool Killed { get; set; }
-        public Ship(GameCell startCell)
+        public bool Killed { get; set; } = false;
+        public int Size { get; private set; }
+        public Ship(int size) 
         {
-            _body.Add(startCell);
-        }
-        public Ship(GameCell startCell, GameCell endCell)
-        {
-            _body.AddRange([startCell, endCell]);
+            Size = size;
         }
     }
 }
