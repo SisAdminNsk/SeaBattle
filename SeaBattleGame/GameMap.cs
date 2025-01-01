@@ -4,17 +4,35 @@ namespace SeaBattleGame
 {
     public class GameMap : IGameMap
     {
-        private int _size;
+        public int Size { get; private set; }
 
         private Dictionary<Ship, List<GameCell>> _shipToLocation = new();
         private Dictionary<GameCell, Ship?> _cellToShip = new(); 
 
+        public Dictionary<GameCell, Ship?> GetCellsToShipMap()
+        {
+            return new Dictionary<GameCell, Ship?>(_cellToShip);
+        }
+
         public event IGameMap.OnShipHitted? ShipHitted;
         public event IGameMap.OnShipDestroyed? ShipDestroyed;
         public event IGameMap.OnHitMissed? HitMissed;
+        public event IGameMap.OnAlreadyHitted? AreadyHitted;
+        public event IGameMap.OnShipAdded? ShipAdded;
+        public event IGameMap.OnShipLocationChanged? ShipLocationChanged;
+        public event IGameMap.OnAllShipsDestroyed? AllShipsDestroyed;
         private void InitializeMap(int size)
         {
-            _size = size;
+            Size = size;
+
+            for(int i=0; i < Size; i++)
+            {
+                for(int j=0; j < Size; j++)
+                {
+                    var gameCell = new GameCell(i, j);
+                    _cellToShip.Add(gameCell, null);
+                }
+            }
         }
         private void FillDestroyedShipArea(Ship? destroyedShip)
         {
@@ -22,9 +40,16 @@ namespace SeaBattleGame
 
             foreach (var neighbour in neighbours)
             {
-                _cellToShip.Keys.FirstOrDefault(x => x.CompareValue(neighbour)).Hitted = true;
+                
+                _cellToShip.Keys.FirstOrDefault(x => x.Equals(neighbour)).Hitted = true;
             }
         }
+
+        public List<GameCell> GetShipLocation(Ship ship)
+        {
+            return _shipToLocation[ship];
+        }
+
         List<GameCell> GetNeighboursCells(Ship ship)
         {
             var shipLocation = _shipToLocation[ship];
@@ -43,7 +68,7 @@ namespace SeaBattleGame
 
                 foreach (var neighbour in potentialNeighbours)
                 {
-                    if (shipLocation.TrueForAll(x => !x.CompareValue(neighbour)) && IsCellOnGameMap(neighbour))
+                    if (shipLocation.TrueForAll(x => !x.Equals(neighbour)) && IsCellOnGameMap(neighbour))
                     {
                         neighbours.Add(neighbour);
                     }
@@ -54,7 +79,7 @@ namespace SeaBattleGame
         }
         private bool IsCellOnGameMap(GameCell cell)
         {
-            return (cell.X >= 0 && cell.X <= _size) && (cell.Y >= 0 && cell.Y <= _size);
+            return (cell.X >= 0 && cell.X <= Size) && (cell.Y >= 0 && cell.Y <= Size);
         }
         public bool TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation)
         {
@@ -84,7 +109,7 @@ namespace SeaBattleGame
                     gameCell = new GameCell(startPosition.X, startPosition.Y + i);
                 }
 
-                _cellToShip.Add(gameCell, ship);
+                _cellToShip[gameCell] = ship;
 
                 shipLocation.Add(gameCell);
             }
@@ -105,7 +130,13 @@ namespace SeaBattleGame
                 if (!cell.Hitted)
                 {
                     cell.Hitted = true;
+                    _cellToShip.Keys.FirstOrDefault(c => c.Equals(cell)).Hitted = true;
+
                     ShipHitted?.Invoke(shipOrNull, this, gameCell);
+                }
+                else
+                {
+                    AreadyHitted?.Invoke(this, gameCell);
                 }
 
                 if (IsShipDestroyed(shipOrNull))
@@ -140,20 +171,23 @@ namespace SeaBattleGame
         {
             if (shipOrientation == ShipOrientation.Vertical)
             {
-                if (startPosition.Y + ship.Size > _size || startPosition.X >= _size) return false;
+                if (startPosition.Y + ship.Size > Size || startPosition.X >= Size) return false;
             }
             else
             {
-                if (startPosition.X + ship.Size > _size || startPosition.Y >= _size) return false; 
+                if (startPosition.X + ship.Size > Size || startPosition.Y >= Size) return false; 
             }
 
             List<GameCell> shipCells = GetShipCells(ship, startPosition, shipOrientation);
 
             foreach (var cell in shipCells)
             {
-                if (_cellToShip.ContainsKey(cell) && _cellToShip[cell] != null)
+                if (_cellToShip[cell] != null)
                 {
-                    return false; 
+                    if (!_cellToShip[cell].Equals(ship))
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -226,6 +260,8 @@ namespace SeaBattleGame
                 return false;
             }
 
+            ClearOldShipLocation(ship);
+
             var shipLocation = new List<GameCell>();
 
             for (int i = 0; i < ship.Size; i++)
@@ -243,12 +279,22 @@ namespace SeaBattleGame
                 }
 
                 _cellToShip[gameCell] = ship;
+
                 shipLocation.Add(gameCell);
             }
 
             _shipToLocation[ship] = shipLocation;
 
             return true;
+        }
+        private void ClearOldShipLocation(Ship ship)
+        {
+            var shipLocation = GetShipLocation(ship);
+
+            foreach (var cell in shipLocation)
+            {
+                _cellToShip[cell] = null;
+            }
         }
     }
 }

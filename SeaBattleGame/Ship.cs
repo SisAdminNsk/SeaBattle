@@ -9,7 +9,9 @@
         {
             Size = size;
 
-            Id = new Guid().ToString();
+            Id = Guid.NewGuid().ToString();
         }
+
+
     }
 }
