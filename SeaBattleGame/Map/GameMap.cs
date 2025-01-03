@@ -68,7 +68,7 @@ namespace SeaBattleGame.Map
 
         private bool IsCellOnGameMap(GameCell cell)
         {
-            return (cell.X >= 0 && cell.X <= Size) && (cell.Y >= 0 && cell.Y <= Size);
+            return (cell.X >= 0 && cell.X < Size) && (cell.Y >= 0 && cell.Y < Size);
         }
         
         public HitGameMapResponse Hit(GameCell gameCell)
@@ -120,12 +120,12 @@ namespace SeaBattleGame.Map
             return false;
         }
 
-        public bool TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation)
+        public ShipAddedResponse TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation)
         {
             return GameMapBody.TryAddShip(ship, startPosition, shipOrientation);
         }
 
-        public bool TryChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation)
+        public ShipLocationChangedResponse TryChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation)
         {
             return GameMapBody.TryChangeShipLocation(ship, newStartPosition, newShipOrientation);
         }

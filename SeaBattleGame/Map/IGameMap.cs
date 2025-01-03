@@ -9,8 +9,8 @@ namespace SeaBattleGame.Map
     }
     public interface IGameMap
     {
-        bool TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation);
-        bool TryChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation);
+        ShipAddedResponse TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation);
+        ShipLocationChangedResponse TryChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation);
         Ship? IsShipOnCell(GameCell gameCell);
         HitGameMapResponse Hit(GameCell gameCell);
         bool IsShipDestroyed(Ship ship);

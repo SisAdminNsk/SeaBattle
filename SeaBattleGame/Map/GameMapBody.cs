@@ -1,4 +1,4 @@
-﻿using SeaBattleGame.Exceptions;
+﻿using SeaBattleGame.Map.MapResponses;
 
 namespace SeaBattleGame.Map
 {
@@ -21,13 +21,14 @@ namespace SeaBattleGame.Map
                 }
             }
         }
+
         public void OnCellHitted(GameCell gameCell)
         {
             var cell = CellToShip.Keys.FirstOrDefault(x => x.Equals(gameCell));
 
             if (cell is null)
             {
-                throw new NullReferenceException("gameCell не найдена среди ключей словаря _cellToShip");
+                throw new KeyNotFoundException("gameCell не найдена среди ключей словаря _cellToShip");
             }
 
             cell.Hitted = true;
@@ -40,17 +41,23 @@ namespace SeaBattleGame.Map
             }
         }
 
-        public bool TryChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation)
+        public ShipLocationChangedResponse TryChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation)
         {
+            var response = new ShipLocationChangedResponse();
+
             if (!ShipToLocation.ContainsKey(ship))
             {
-                throw new IncorrectMethodUsage("Неправильное использование метода," +
-                    " метод используется для изменения положения уже установленного корбаля, но корабль еще не установлен.");
+                response.ErrorMessage = "Неправильное использование метода, " +
+                    "метод используется для изменения положения уже установленного корбаля, но корабль еще не установлен.";
+
+                return response;
             }
 
             if (!ValidateShipLocation(ship, newStartPosition, newShipOrientation))
             {
-                return false;
+                response.ErrorMessage = "Невалидная позиция корабля на карте.";
+
+                return response;
             }
 
             ClearOldShipLocation(ship);
@@ -78,7 +85,12 @@ namespace SeaBattleGame.Map
 
             ShipToLocation[ship] = shipLocation;
 
-            return true;
+            response.Success = true;
+            response.Ship = ship;
+            response.OldLocation = ShipToLocation[ship];
+            response.NewLocation = shipLocation;
+
+            return response;
         }
         private void ClearOldShipLocation(Ship ship)
         {
@@ -166,16 +178,22 @@ namespace SeaBattleGame.Map
             return (dx <= 1 && dy <= 1) && !(dx == 0 && dy == 0);
         }
 
-        public bool TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation)
+        public ShipAddedResponse TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation)
         {
+            var response = new ShipAddedResponse();
+
             if (!ValidateShipLocation(ship, startPosition, shipOrientation))
             {
-                return false;
+                response.ErrorMessage = "Невалидная позиция корабля на карте.";
+
+                return response;
             }
 
             if (ShipToLocation.ContainsKey(ship))
             {
-                return false;
+                response.ErrorMessage = "Корабль уже добавлен на карту.";
+
+                return response;
             }
 
             var shipLocation = new List<GameCell>();
@@ -201,7 +219,11 @@ namespace SeaBattleGame.Map
 
             ShipToLocation.Add(ship, shipLocation);
 
-            return true;
+            response.Ship = ship;
+            response.Success = true;
+            response.ShipLocation = shipLocation;
+
+            return response;
         }
     }
 }
