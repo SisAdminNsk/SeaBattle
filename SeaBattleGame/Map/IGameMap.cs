@@ -13,5 +13,7 @@ namespace SeaBattleGame.Map
         bool TryChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation);
         Ship? IsShipOnCell(GameCell gameCell);
         HitGameMapResponse Hit(GameCell gameCell);
+        bool IsShipDestroyed(Ship ship);
+        List<GameCell> GetShipLocation(Ship ship);
     }
 }

@@ -11,19 +11,21 @@
         public GameCell HittedCell { get; set; }
         public HitStatus HitStatus { get; set; }
         public Ship? HittedShip { get; set; }
-        public HitGameMapResponse()
+        public HitGameMapResponse(GameCell gameCell)
         {
-
+            HittedCell = gameCell;
+            HittedCell.Hitted = true;
         }
-
         public HitGameMapResponse(GameCell hittedCell, HitStatus hitStatus)
         {
             HittedCell = hittedCell;
+            HittedCell.Hitted = true;
             HitStatus = hitStatus;
         }
         public HitGameMapResponse(GameCell hittedCell, HitStatus hitStatus, Ship? hittedShip)
         {
             HittedCell = hittedCell;
+            HittedCell.Hitted = true;
             HitStatus = hitStatus;
             HittedShip = hittedShip;
         }
