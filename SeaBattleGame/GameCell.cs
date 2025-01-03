@@ -15,11 +15,6 @@
 
         }
 
-        //public bool CompareValue(GameCell other)
-        //{
-        //    return other.X == X && other.Y == Y;
-        //}
-
         public override bool Equals(object? obj)
         {
             if (obj == null || GetType() != obj.GetType())

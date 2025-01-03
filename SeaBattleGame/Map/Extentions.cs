@@ -1,6 +1,6 @@
-﻿namespace SeaBattleGame
+﻿namespace SeaBattleGame.Map
 {
-    public static class GameMapExtentions
+    public static class Extentions
     {
         public static void PrintGameMap(this GameMap map)
         {
@@ -8,7 +8,7 @@
 
             List<List<GameCell>> matrixGameMapView = new();
 
-            for(int i = 0; i < map.Size; i++)
+            for (int i = 0; i < map.Size; i++)
             {
                 var currentLevel = cellsToShipMap.Keys.Where(c => c.Y == i).ToList();
 
@@ -27,12 +27,19 @@
                     {
                         if (currnetCell.Hitted)
                         {
-                            Console.Write("h");
+                            if (ship.Killed)
+                            {
+                                Console.Write("k");
+                            }
+                            else
+                            {
+                                Console.Write("h");
+                            }
                         }
                         else
                         {
                             Console.Write("#");
-                        }                 
+                        }
                     }
                     else
                     {
@@ -43,7 +50,7 @@
                         else
                         {
                             Console.Write("o");
-                        }                   
+                        }
                     }
                 }
 
