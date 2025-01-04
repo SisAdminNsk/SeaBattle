@@ -14,7 +14,6 @@ namespace SeaBattleGame.Map
         ShipLocationChangedResponse TryChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation);
         Ship? IsShipOnCell(GameCell gameCell);
         HitGameMapResponse Hit(GameCell gameCell);
-
         void Clear();
         bool IsShipDestroyed(Ship ship);
         List<GameCell> GetShipLocation(Ship ship);

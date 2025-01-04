@@ -50,7 +50,11 @@ namespace SeaBattleGame.Map
                     new GameCell(cell.X - 1, cell.Y),
                     new GameCell(cell.X + 1, cell.Y),
                     new GameCell(cell.X, cell.Y - 1),
-                    new GameCell(cell.X, cell.Y + 1)
+                    new GameCell(cell.X, cell.Y + 1),
+                    new GameCell(cell.X + 1, cell.Y + 1),
+                    new GameCell(cell.X - 1, cell.Y - 1),
+                    new GameCell(cell.X -1, cell.Y + 1),
+                    new GameCell(cell.X + 1, cell.Y -1)
                 };
 
                 foreach (var neighbour in potentialNeighbours)
@@ -172,9 +176,9 @@ namespace SeaBattleGame.Map
 
                 if (!shipPlaced)
                 {
-                    for (int i = 0; i < startCell.X; i++)
+                    for (int i = 0; i < Size && !shipPlaced; i++)
                     {
-                        for (int j = 0; j < startCell.Y; j++)
+                        for (int j = 0; j < Size && !shipPlaced; j++)
                         {
                             if (TryAddVerticalOrHorizontal(ship, new GameCell(i, j), forbiddenCells))
                             {
@@ -241,10 +245,16 @@ namespace SeaBattleGame.Map
             if (success)
             {
                 var shipLocation = GetShipLocation(ship);
+                var neighboursCells = GetNeighboursCells(ship);
 
                 foreach (var shipCell in shipLocation)
                 {
                     forbiddenCells.Add(shipCell);
+                }
+
+                foreach(var neighbourCell in neighboursCells)
+                {
+                    forbiddenCells.Add(neighbourCell);
                 }
 
                 return true;
