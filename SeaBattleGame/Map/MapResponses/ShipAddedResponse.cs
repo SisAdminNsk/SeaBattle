@@ -10,7 +10,7 @@
         {
 
         }
-        public ShipAddedResponse(Ship? ship, bool success, List<GameCell> shipLocation)
+        public ShipAddedResponse(Ship ship, bool success, List<GameCell> shipLocation)
         {
             Success = success;
             Ship = ship;

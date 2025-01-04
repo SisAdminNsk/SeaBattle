@@ -11,6 +11,12 @@
         public GameCell HittedCell { get; set; }
         public HitStatus HitStatus { get; set; }
         public Ship? HittedShip { get; set; }
+
+        public HitGameMapResponse()
+        {
+
+        }
+
         public HitGameMapResponse(GameCell gameCell)
         {
             HittedCell = gameCell;
