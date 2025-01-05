@@ -9,6 +9,9 @@ namespace SeaBattleGame.Map
     }
     public interface IGameMap
     {
+        delegate void OnAllShipsDestroyed(IGameMap sender);
+        event OnAllShipsDestroyed AllShipsDestroyed;
+        Dictionary<GameCell, Ship?> GetCellsToShipMap();
         ShipsAddedResponse TryAddShipsRandomly(List<Ship> ships);
         ShipAddedResponse TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation);
         ShipLocationChangedResponse TryChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation);

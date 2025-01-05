@@ -4,11 +4,10 @@ namespace SeaBattleGame.Player
 {
     public interface IGamePlayer
     {
-        delegate void OnHit(IGamePlayer sender, HitGameMapResponse hitGameMapResponse);
+        delegate void OnHit(IGamePlayer sender, GameCell cellToHit);
         event OnHit Hit;
-
         void SetGameStarted();
         string GetId();
-        HitGameMapResponse MakeHitTurn(GameCell cellToHit);
+        void RequestMakeHit(GameCell cellToHit);
     }
 }

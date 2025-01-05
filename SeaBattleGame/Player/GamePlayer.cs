@@ -1,5 +1,4 @@
 ﻿using SeaBattleGame.Map;
-using SeaBattleGame.Map.MapResponses;
 
 namespace SeaBattleGame.Player
 {
@@ -14,17 +13,11 @@ namespace SeaBattleGame.Player
         {
             _gameStarted = true;
         }
-        public HitGameMapResponse MakeHitTurn(GameCell cellToHit)
+        public void RequestMakeHit(GameCell cellToHit)
         {
             if (_gameStarted)
             {
-                var hitResponse = GameMap.Hit(cellToHit);
-
-                // я хочу выстрелить сессия - обработай мой запрос 
-
-                Hit?.Invoke(this, hitResponse);
-
-                return hitResponse;
+                Hit?.Invoke(this, cellToHit);
             }
 
             throw new Exception("Неправильное использование метода, нельзя произвести выстрел до того как игра началась");
@@ -34,6 +27,7 @@ namespace SeaBattleGame.Player
         {
             return _id;
         }
+
         public GamePlayer(IGameMap gameMap)
         {
             _id = Guid.NewGuid().ToString();

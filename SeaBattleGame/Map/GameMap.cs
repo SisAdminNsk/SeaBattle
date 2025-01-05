@@ -1,15 +1,21 @@
-﻿using SeaBattleGame.Map.MapResponses;
+﻿using SeaBattleGame.GameConfig;
+using SeaBattleGame.Map.MapResponses;
 
 namespace SeaBattleGame.Map
 {
     public class GameMap : IGameMap
     {
+        private GameModeConfig _gameModeConfig;
+        private bool _isAllShipsPlaced = false;
+        private Dictionary<int, int> _shipsSizeToCount = new();
         private GameMapBody GameMapBody { get; set; }
 
         public int Size
         {
             get { return GameMapBody.Size; }
         }
+
+        public event IGameMap.OnAllShipsDestroyed AllShipsDestroyed;
 
         public Dictionary<GameCell, Ship?> GetCellsToShipMap()
         {
@@ -124,7 +130,34 @@ namespace SeaBattleGame.Map
 
         public ShipAddedResponse TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation)
         {
-            return GameMapBody.TryAddShip(ship, startPosition, shipOrientation);
+            if (!_isAllShipsPlaced)
+            {
+                var response = GameMapBody.TryAddShip(ship, startPosition, shipOrientation);
+
+                if (response.Success)
+                {
+                    _shipsSizeToCount[ship.Size]++;
+
+                    SetFlagIfAllShipsPlaced();
+                }
+
+                return response;
+            }
+
+            return new ShipAddedResponse("Достигнуто максимальное количество кораблей на поле при данной конфигурации.");
+        }
+
+        private void SetFlagIfAllShipsPlaced()
+        {
+            foreach (var shipsSize in _gameModeConfig.Ships)
+            {
+                if (_shipsSizeToCount[shipsSize.Size] != shipsSize.Count){
+
+                    return;
+                }
+            }
+
+            _isAllShipsPlaced = true;
         }
 
         public ShipLocationChangedResponse TryChangeShipLocation(Ship ship, GameCell newStartPosition, ShipOrientation newShipOrientation)
@@ -196,6 +229,8 @@ namespace SeaBattleGame.Map
 
                 }
             }
+
+            _isAllShipsPlaced = true;
 
             response.Success = true;
 
@@ -297,10 +332,24 @@ namespace SeaBattleGame.Map
                 ships[k] = temp;
             }
         }
+        //public GameMap(int size)
+        //{
+        //    InitializeMap(size);
+        //}
 
-        public GameMap(int size)
+        public GameMap(GameModeConfig gameModeConfig)
         {
-            InitializeMap(size);
+            _gameModeConfig = gameModeConfig;
+
+            InitializeMap(gameModeConfig.GameMapSize);
+            InitializeShipsToCount(gameModeConfig.Ships);
+        }
+        private void InitializeShipsToCount(List<ConfigShip> configShips)
+        {
+            foreach(var configShip in configShips)
+            {
+                _shipsSizeToCount[configShip.Size] = configShip.Count;
+            }
         }
     }
 }

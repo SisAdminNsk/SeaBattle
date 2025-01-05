@@ -10,6 +10,11 @@
         {
 
         }
+        public ShipAddedResponse(string errorMessage)
+        {
+            ErrorMessage = errorMessage;
+        }
+
         public ShipAddedResponse(Ship ship, bool success, List<GameCell> shipLocation)
         {
             Success = success;

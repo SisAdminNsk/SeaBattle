@@ -1,4 +1,5 @@
-﻿using SeaBattleGame.Map;
+﻿using SeaBattleGame.GameConfig;
+using SeaBattleGame.Map;
 using SeaBattleGame.Player;
 using System.Timers;
 
@@ -13,6 +14,8 @@ namespace SeaBattleGame.Game
         private System.Timers.Timer _gameTimer;
         private System.Timers.Timer _playerTurnTimer;
 
+        private GameModeConfig _gameModeConfig;
+
         private IGameMap _player1Map;
         private IGameMap _player2Map;
 
@@ -22,19 +25,14 @@ namespace SeaBattleGame.Game
         public event IGameSession.OnGameSessionStarted GameSessionStarted;
         public event IGameSession.OnGameSessionFinished GameSessionFinished;
         public event IGameSession.OnPlayerTurnTimeHasPassed GameSessionTurnTimeHasPassed;
-        public GameSession(IGamePlayer player1, IGamePlayer player2) 
+
+        public GameSession(GameSessionArgs gameSessionArgs) 
         {
-            _player1Map = new GameMap(10);
-            _player2Map = new GameMap(10);
+            _player1Map = gameSessionArgs.Player1Args.GameMap;
+            _player2Map = gameSessionArgs.Player2Args.GameMap;
 
-            _player1 = player1;
-            _player2 = player2;
-
-            _player1.SetGameStarted();
-            _player2.SetGameStarted();
-
-            _player1.Hit += OnPlayerHit;
-            _player2.Hit += OnPlayerHit;
+            _player1 = gameSessionArgs.Player1Args.GamePlayer;
+            _player2 = gameSessionArgs.Player2Args.GamePlayer;
 
             _gameTimer = new System.Timers.Timer(MaxSessionDurationInSeconds);
             _gameTimer.Elapsed += GameSessionTimeHasPassed;
@@ -43,7 +41,6 @@ namespace SeaBattleGame.Game
             _playerTurnTimer.AutoReset = true;
             _playerTurnTimer.Elapsed += PlayerTurnTimeHasPassed;          
         }
-
         private void PlayerTurnTimeHasPassed(object? sender, ElapsedEventArgs e)
         {
             GameSessionTurnTimeHasPassed.Invoke(this, GetPlayerById(PlayerIdTurn));
@@ -78,14 +75,11 @@ namespace SeaBattleGame.Game
             Stop();
         }
 
-        private void OnPlayerHit(IGamePlayer sender, Map.MapResponses.HitGameMapResponse hitGameMapResponse)
+        private void OnPlayerHit(IGamePlayer sender, GameCell gameCell)
         {
             ChangePlayerTurn();
 
-            if(hitGameMapResponse.HittedShip != null && hitGameMapResponse.HittedShip.Killed)
-            {
-                
-            }
+            // произвести выстерл по карте чужого игрока != sender
 
 
             _playerTurnTimer.Stop();
@@ -94,7 +88,16 @@ namespace SeaBattleGame.Game
 
         public void Start()
         {
+            _player1.SetGameStarted();
+            _player2.SetGameStarted();
+
+            _player1.Hit += OnPlayerHit;
+            _player2.Hit += OnPlayerHit;
+
             PlayerIdTurn = _player1.GetId();
+
+            _gameTimer.Start();
+            _playerTurnTimer.Start();
 
             GameSessionStarted?.Invoke(this, new List<IGamePlayer> { _player1, _player2 });
         }
