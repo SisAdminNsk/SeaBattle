@@ -1,5 +1,7 @@
-﻿using SeaBattleGame.GameConfig;
+﻿using SeaBattleGame.Game.GameResponses;
+using SeaBattleGame.GameConfig;
 using SeaBattleGame.Map;
+using SeaBattleGame.Map.MapResponses;
 using SeaBattleGame.Player;
 using System.Timers;
 
@@ -7,8 +9,8 @@ namespace SeaBattleGame.Game
 {
     public class GameSession : IGameSession
     {
-        public int MaxSessionDurationInSeconds { get; private set; } = 600;
-        public int MaxTurnDurationInSeconds { get; private set; } = 15;
+        public int MaxSessionDurationInMsc { get; private set; } = 600000;
+        public int MaxTurnDurationInMsc { get; private set; } = 10000;
         public string PlayerIdTurn { get; private set; }
 
         private System.Timers.Timer _gameTimer;
@@ -25,6 +27,7 @@ namespace SeaBattleGame.Game
         public event IGameSession.OnGameSessionStarted GameSessionStarted;
         public event IGameSession.OnGameSessionFinished GameSessionFinished;
         public event IGameSession.OnPlayerTurnTimeHasPassed GameSessionTurnTimeHasPassed;
+        public event IGameSession.OnPlayerHit PlayerHit;
 
         public GameSession(GameSessionArgs gameSessionArgs) 
         {
@@ -34,18 +37,39 @@ namespace SeaBattleGame.Game
             _player1 = gameSessionArgs.Player1Args.GamePlayer;
             _player2 = gameSessionArgs.Player2Args.GamePlayer;
 
-            _gameTimer = new System.Timers.Timer(MaxSessionDurationInSeconds);
+            _gameTimer = new System.Timers.Timer(MaxSessionDurationInMsc);
             _gameTimer.Elapsed += GameSessionTimeHasPassed;
 
-            _playerTurnTimer = new System.Timers.Timer(MaxTurnDurationInSeconds);
-            _playerTurnTimer.AutoReset = true;
-            _playerTurnTimer.Elapsed += PlayerTurnTimeHasPassed;          
+            _playerTurnTimer = new System.Timers.Timer(MaxTurnDurationInMsc);
+            _playerTurnTimer.Interval = MaxTurnDurationInMsc;
+            _playerTurnTimer.Elapsed += PlayerTurnTimeHasPassed;
+
+            _player1Map.AllShipsDestroyed += AllShipsDestroyed;
+            _player2Map.AllShipsDestroyed += AllShipsDestroyed;
         }
+
+        private void AllShipsDestroyed(IGameMap sender)
+        {
+            if (sender.Equals(_player1Map))
+            {
+                Stop(_player2);
+            }
+            else
+            {
+                Stop(_player1);
+            }
+        }
+
         private void PlayerTurnTimeHasPassed(object? sender, ElapsedEventArgs e)
         {
-            GameSessionTurnTimeHasPassed.Invoke(this, GetPlayerById(PlayerIdTurn));
+            var oldPlayerTurnId = PlayerIdTurn;
 
             ChangePlayerTurn();
+
+            _playerTurnTimer.Stop();
+            _playerTurnTimer.Start();
+
+            GameSessionTurnTimeHasPassed?.Invoke(this, GetPlayerById(oldPlayerTurnId));
         }
 
         private IGamePlayer GetPlayerById(string id)
@@ -77,13 +101,53 @@ namespace SeaBattleGame.Game
 
         private void OnPlayerHit(IGamePlayer sender, GameCell gameCell)
         {
-            ChangePlayerTurn();
+            var response = new PlayerHitResponse();
 
-            // произвести выстерл по карте чужого игрока != sender
+            if(sender.GetId() != PlayerIdTurn)
+            {
+                response.ErrorMessage = "Сейчас ходит другой игрок.";
 
+                PlayerHit?.Invoke(this, sender, response);
 
-            _playerTurnTimer.Stop();
-            _playerTurnTimer.Start();
+                return;
+            }
+
+            var hitResponse = new HitGameMapResponse();
+
+            if (sender.Equals(_player1))
+            {
+                hitResponse = _player2Map.Hit(gameCell);
+            }
+            else
+            {
+                hitResponse = _player1Map.Hit(gameCell);
+            }
+
+            response.Success = true;
+            response.HitGameMapResponse = hitResponse;
+            response.PlayerTurnId = PlayerIdTurn;
+
+            if (hitResponse.HitStatus == HitStatus.Missed)
+            {
+                ChangePlayerTurn();
+
+                _playerTurnTimer.Stop();
+                _playerTurnTimer.Start();
+            }
+
+            if (hitResponse.HitStatus == HitStatus.Hitted) 
+            {
+                _playerTurnTimer.Stop();
+                _playerTurnTimer.Interval = MaxTurnDurationInMsc;
+                _playerTurnTimer.Start();
+            }
+
+            PlayerHit?.Invoke(this, sender, response);
+        }
+
+        public IGamePlayer GetCurrentTurnPlayer()
+        {
+            return GetPlayerById(PlayerIdTurn);
         }
 
         public void Start()
@@ -100,6 +164,11 @@ namespace SeaBattleGame.Game
             _playerTurnTimer.Start();
 
             GameSessionStarted?.Invoke(this, new List<IGamePlayer> { _player1, _player2 });
+        }
+
+        public void Stop(IGamePlayer winnerPlayer)
+        {
+            GameSessionFinished?.Invoke(this, winnerPlayer);
         }
 
         public void Stop()

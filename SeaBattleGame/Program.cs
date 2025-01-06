@@ -1,73 +1,142 @@
-﻿using SeaBattleGame.GameConfig;
+﻿using SeaBattleGame.Game;
+using SeaBattleGame.GameConfig;
 using SeaBattleGame.Map;
+using SeaBattleGame.Player;
 
 namespace SeaBattleGame
 {
     internal class Program
     {
+        private static IGamePlayer _player1 = new GamePlayer();
+        private static IGamePlayer _player2 = new GamePlayer();
+
+        private static IGameMap _player1Map;
+        private static IGameMap _player2Map;
         static void Main(string[] args)
         {
             GameConfigReader configReader = new GameConfigReader();
 
             var gameConfig = configReader.ReadConfig(GameMode.StandartGameMode);
 
-            var gameMap = new GameMap(gameConfig);
-            var ships = gameConfig.GetShipsFromConfig();
+            _player1Map = new GameMap(gameConfig);
 
-            gameMap.TryAddShip(ships[0], new GameCell(0, 0), ShipOrientation.Horizontal);
-            gameMap.TryAddShip(ships[1], new GameCell(0, 2), ShipOrientation.Horizontal);
-            gameMap.TryAddShip(ships[2], new GameCell(0, 4), ShipOrientation.Horizontal);
-            gameMap.TryAddShip(ships[3], new GameCell(0, 6), ShipOrientation.Horizontal);
+            if (!_player1Map.TryAddShipsRandomly(gameConfig.GetShipsFromConfig()).Success)
+            {
+                throw new Exception("Ошибка при расставлении кораблей.");
+            }
 
-            gameMap.TryAddShip(ships[4], new GameCell(2, 0), ShipOrientation.Horizontal);
-            gameMap.TryAddShip(ships[5], new GameCell(2, 2), ShipOrientation.Horizontal);
-            gameMap.TryAddShip(ships[6], new GameCell(2, 4), ShipOrientation.Horizontal);
+            _player2Map = new GameMap(gameConfig);
 
-            gameMap.TryAddShip(ships[7], new GameCell(6, 0), ShipOrientation.Vertical);
-            gameMap.TryAddShip(ships[8], new GameCell(6, 4), ShipOrientation.Horizontal);
+            if (!_player2Map.TryAddShipsRandomly(gameConfig.GetShipsFromConfig()).Success)
+            {
+                throw new Exception("Ошибка при расставлении кораблей.");
+            }
 
-            gameMap.TryAddShip(ships[9], new GameCell(5, 9), ShipOrientation.Horizontal);
+            IGameSession gameSession = new GameSession
+            (
+                new GameSessionArgs
+                (
+                    new PlayerArgs(_player1Map, _player1),
+                    new PlayerArgs(_player2Map, _player2)
+                )
+            );
 
-            gameMap.PrintGameMap();
+            bool gameFinished = false;
 
-            gameMap.AllShipsDestroyed += (sender) => { Console.WriteLine("Все корабли уничтожены"); };
+            gameSession.GameSessionFinished += (sender, winnerPlayerOrNll) => 
+            {
+                OnGameFinished(sender, winnerPlayerOrNll);
+            };
 
-            gameMap.Hit(new GameCell(6, 0));
-            gameMap.Hit(new GameCell(6, 1));
-            gameMap.Hit(new GameCell(6, 2));
-            gameMap.Hit(new GameCell(7, 1));
-            gameMap.Hit(new GameCell(8, 1));
+            gameSession.GameSessionTurnTimeHasPassed += OnPlayerTurnTimeHasPassed;
 
-            gameMap.Hit(new GameCell(2, 0));
-            gameMap.Hit(new GameCell(3, 0));
+            gameSession.PlayerHit += OnPlayerHit;
 
-            gameMap.Hit(new GameCell(2, 2));
-            gameMap.Hit(new GameCell(3, 2));
+            gameSession.Start();
 
-            gameMap.Hit(new GameCell(2, 4));
-            gameMap.Hit(new GameCell(3, 4));
+            while (!gameFinished)
+            {
+                ProcessGame(gameSession);
+            }
+        }
 
-            gameMap.Hit(new GameCell(0, 0));
-            gameMap.Hit(new GameCell(0,2));
-            gameMap.Hit(new GameCell(0, 4));
-            gameMap.Hit(new GameCell(0, 6));
+        private static void OnPlayerHit(IGameSession sender, IGamePlayer player, Game.GameResponses.PlayerHitResponse playerHitResponse)
+        {
+            Console.Clear();
+            ProcessGame(sender);
+        }
 
-            gameMap.Hit(new GameCell(2, 0));
-            gameMap.Hit(new GameCell(3, 0));
-
-            gameMap.Hit(new GameCell(6, 4));
-            gameMap.Hit(new GameCell(7, 4));
-            gameMap.Hit(new GameCell(8, 4));
-
-            gameMap.Hit(new GameCell(5, 9));
-            gameMap.Hit(new GameCell(6, 9));
-            gameMap.Hit(new GameCell(7, 9));
-            gameMap.Hit(new GameCell(8, 9));
-
+        private static void ProcessGame(IGameSession gameSession)
+        {
             Console.WriteLine();
+            Console.WriteLine($"Карта игрока: {_player1.GetId()}");
+            _player1Map.PrintGameMap();
+            Console.WriteLine();
+            Console.WriteLine($"Карта игрока: {_player2.GetId()}");
+            _player2Map.PrintGameMap();
 
-            gameMap.PrintGameMap();
+            Console.WriteLine($"Ход игрока: {gameSession.GetCurrentTurnPlayer().GetId()}");
+            Console.Write("Введите координаты для атаки в формате (x,y): ");
 
+            string input = Console.ReadLine();
+
+            if (!TryParseCoordinates(input, out int x, out int y))
+            {
+                Console.WriteLine("Неправильный формат координат.");
+            }
+            else
+            {
+                var gameCell = new GameCell(x, y);
+
+                if (gameSession.GetCurrentTurnPlayer().GetId() == _player1.GetId())
+                {
+                    _player1.RequestMakeHit(gameCell);
+                }
+                else
+                {
+                    _player2.RequestMakeHit(gameCell);
+                }
+            }
+        }
+        private static void OnPlayerTurnTimeHasPassed(IGameSession sender, IGamePlayer player)
+        {
+            Console.Clear();
+            ProcessGame(sender);
+        }
+
+        private static void OnGameFinished(IGameSession sender, IGamePlayer? winnerPlayer)
+        {
+            if(winnerPlayer is null)
+            {
+                Console.WriteLine("Ничья");
+            }
+            else
+            {
+                Console.WriteLine($"Победил игрок: {winnerPlayer.GetId()}");
+            }
+        }
+        private static bool TryParseCoordinates(string input, out int x, out int y)
+        {
+            x = 0;
+            y = 0;
+
+            input = input.Trim();
+
+            if (!input.StartsWith("(") || !input.EndsWith(")"))
+            {
+                return false;
+            }
+
+            input = input[1..^1];
+
+            var parts = input.Split(',');
+
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+
+            return int.TryParse(parts[0].Trim(), out x) && int.TryParse(parts[1].Trim(), out y);
         }
     }
 }

@@ -1,4 +1,3 @@
-using Microsoft.VisualStudio.CodeCoverage;
 using SeaBattleGame;
 using SeaBattleGame.GameConfig;
 using SeaBattleGame.Map;

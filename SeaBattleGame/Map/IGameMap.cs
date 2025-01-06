@@ -20,5 +20,7 @@ namespace SeaBattleGame.Map
         void Clear();
         bool IsShipDestroyed(Ship ship);
         List<GameCell> GetShipLocation(Ship ship);
+
+        int Size();
     }
 }

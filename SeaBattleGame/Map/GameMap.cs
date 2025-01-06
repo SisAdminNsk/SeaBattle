@@ -375,5 +375,10 @@ namespace SeaBattleGame.Map
                 _shipsSizeToCount[configShip.Size] = 0;
             }
         }
+
+        int IGameMap.Size()
+        {
+            return Size;
+        }
     }
 }

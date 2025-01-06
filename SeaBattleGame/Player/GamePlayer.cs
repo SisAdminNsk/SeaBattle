@@ -18,8 +18,11 @@ namespace SeaBattleGame.Player
             {
                 Hit?.Invoke(this, cellToHit);
             }
+            else
+            {
+                throw new Exception("Неправильное использование метода, нельзя произвести выстрел до того как игра началась");
+            }
 
-            throw new Exception("Неправильное использование метода, нельзя произвести выстрел до того как игра началась");
         }
 
         public string GetId()
