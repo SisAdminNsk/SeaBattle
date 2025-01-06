@@ -7,6 +7,7 @@ namespace SeaBattleGame.Map
     {
         private GameModeConfig _gameModeConfig;
         private bool _isAllShipsPlaced = false;
+        private bool _isAllShipsDestroyed = false;
         private Dictionary<int, int> _shipsSizeToCount = new();
         private GameMapBody GameMapBody { get; set; }
 
@@ -34,13 +35,8 @@ namespace SeaBattleGame.Map
             var neighbours = GetNeighboursCells(destroyedShip);
 
             foreach (var neighbour in neighbours)
-            {
-                var cell = GameMapBody.CellToShip.Keys.FirstOrDefault(x => x.Equals(neighbour));
-
-                if (cell != null)
-                {
-                    GameMapBody.OnCellHitted(cell);
-                }
+            {   
+                GameMapBody.OnCellHitted(neighbour);
             }
         }
         public List<GameCell> GetNeighboursCells(Ship ship)
@@ -72,7 +68,14 @@ namespace SeaBattleGame.Map
                 }
             }
 
-            return neighbours.ToList();
+            List<GameCell> neighboursGameCells = new();
+
+            foreach(var neighbour in neighbours)
+            {
+                neighboursGameCells.Add(GameMapBody.CellToShip.Keys.FirstOrDefault(c => c.Equals(neighbour)));
+            }
+
+            return neighboursGameCells;
         }
         private bool IsCellOnGameMap(GameCell cell)
         {
@@ -81,39 +84,64 @@ namespace SeaBattleGame.Map
 
         public HitGameMapResponse Hit(GameCell gameCell)
         {
-            var hitResponse = new HitGameMapResponse(gameCell);
-
-            var cell = GameMapBody.CellToShip.Keys.FirstOrDefault(x => x.Equals(gameCell));
-
-            if (cell.Hitted == true)
+            if (!_isAllShipsDestroyed)
             {
-                hitResponse.HitStatus = HitStatus.AlreadyHitted;
+                var hitResponse = new HitGameMapResponse(gameCell);
+
+                var cell = GameMapBody.CellToShip.Keys.FirstOrDefault(x => x.Equals(gameCell));
+
+                if (cell.Hitted == true)
+                {
+                    hitResponse.HitStatus = HitStatus.AlreadyHitted;
+                    hitResponse.Success = false;
+                    hitResponse.ErrorMessage = "Клетка была поражена раннее.";
+
+                    return hitResponse;
+                }
+
+                GameMapBody.OnCellHitted(cell);
+
+                var ship = IsShipOnCell(cell);
+
+                if (ship != null)
+                {
+                    hitResponse.HittedShip = ship;
+                    hitResponse.HitStatus = HitStatus.Hitted;
+
+                    if (IsShipDestroyed(ship))
+                    {
+                        ship.Killed = true;
+
+                        FillDestroyedShipArea(ship);
+                        InvokeEventIfAllShipsDestroyed();
+                    }
+                }
+                else
+                {
+                    hitResponse.HitStatus = HitStatus.Missed;
+                }
+
+                hitResponse.Success = true;
 
                 return hitResponse;
             }
 
-            GameMapBody.OnCellHitted(gameCell);
+            return new HitGameMapResponse("Все корабли уже уничтожены.");
+        }
 
-            var ship = IsShipOnCell(gameCell);
-
-            if (ship != null)
+        private void InvokeEventIfAllShipsDestroyed()
+        {
+            foreach (var ship in GameMapBody.ShipToLocation.Keys) 
             {
-                hitResponse.HittedShip = ship;
-                hitResponse.HitStatus = HitStatus.Hitted;
-
-                if (IsShipDestroyed(ship))
+                if (!ship.Killed)
                 {
-                    ship.Killed = true;
-
-                    FillDestroyedShipArea(ship);
+                    return;
                 }
             }
-            else
-            {
-                hitResponse.HitStatus = HitStatus.Missed;
-            }
 
-            return hitResponse;
+            _isAllShipsDestroyed = true;
+
+            AllShipsDestroyed?.Invoke(this);
         }
 
         public bool IsShipDestroyed(Ship ship)
@@ -332,10 +360,6 @@ namespace SeaBattleGame.Map
                 ships[k] = temp;
             }
         }
-        //public GameMap(int size)
-        //{
-        //    InitializeMap(size);
-        //}
 
         public GameMap(GameModeConfig gameModeConfig)
         {
@@ -348,7 +372,7 @@ namespace SeaBattleGame.Map
         {
             foreach(var configShip in configShips)
             {
-                _shipsSizeToCount[configShip.Size] = configShip.Count;
+                _shipsSizeToCount[configShip.Size] = 0;
             }
         }
     }

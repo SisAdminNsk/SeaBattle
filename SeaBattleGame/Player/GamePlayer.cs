@@ -8,7 +8,6 @@ namespace SeaBattleGame.Player
         private bool _gameStarted = false;
 
         public event IGamePlayer.OnHit Hit;
-        public IGameMap GameMap { get; private set; }
         public void SetGameStarted()
         {
             _gameStarted = true;
@@ -28,11 +27,9 @@ namespace SeaBattleGame.Player
             return _id;
         }
 
-        public GamePlayer(IGameMap gameMap)
+        public GamePlayer()
         {
             _id = Guid.NewGuid().ToString();
-
-            GameMap = gameMap;
         }
     }
 }

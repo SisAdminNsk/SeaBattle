@@ -8,6 +8,8 @@
     }
     public class HitGameMapResponse
     {
+        public bool Success { get; set; } = false;
+        public string? ErrorMessage { get; set; }
         public GameCell HittedCell { get; set; }
         public HitStatus HitStatus { get; set; }
         public Ship? HittedShip { get; set; }
@@ -15,6 +17,10 @@
         public HitGameMapResponse()
         {
 
+        }
+        public HitGameMapResponse(string errorMessage)
+        {
+            ErrorMessage = errorMessage;
         }
 
         public HitGameMapResponse(GameCell gameCell)

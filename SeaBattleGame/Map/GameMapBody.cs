@@ -24,14 +24,7 @@ namespace SeaBattleGame.Map
 
         public void OnCellHitted(GameCell gameCell)
         {
-            var cell = CellToShip.Keys.FirstOrDefault(x => x.Equals(gameCell));
-
-            if (cell is null)
-            {
-                throw new KeyNotFoundException("gameCell не найдена среди ключей словаря _cellToShip");
-            }
-
-            cell.Hitted = true;
+            gameCell.Hitted = true; 
 
             var ship = CellToShip[gameCell];
 
