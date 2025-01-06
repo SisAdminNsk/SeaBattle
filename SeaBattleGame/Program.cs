@@ -7,6 +7,8 @@ namespace SeaBattleGame
 {
     internal class Program
     {
+        private static bool _gameFinished = false;
+
         private static IGamePlayer _player1 = new GamePlayer();
         private static IGamePlayer _player2 = new GamePlayer();
 
@@ -41,8 +43,6 @@ namespace SeaBattleGame
                 )
             );
 
-            bool gameFinished = false;
-
             gameSession.GameSessionFinished += (sender, winnerPlayerOrNll) => 
             {
                 OnGameFinished(sender, winnerPlayerOrNll);
@@ -54,7 +54,7 @@ namespace SeaBattleGame
 
             gameSession.Start();
 
-            while (!gameFinished)
+            while (!_gameFinished)
             {
                 ProcessGame(gameSession);
             }
@@ -106,7 +106,9 @@ namespace SeaBattleGame
 
         private static void OnGameFinished(IGameSession sender, IGamePlayer? winnerPlayer)
         {
-            if(winnerPlayer is null)
+            Console.Clear();
+
+            if (winnerPlayer is null)
             {
                 Console.WriteLine("Ничья");
             }
@@ -114,6 +116,9 @@ namespace SeaBattleGame
             {
                 Console.WriteLine($"Победил игрок: {winnerPlayer.GetId()}");
             }
+
+            _gameFinished = true;
+            
         }
         private static bool TryParseCoordinates(string input, out int x, out int y)
         {

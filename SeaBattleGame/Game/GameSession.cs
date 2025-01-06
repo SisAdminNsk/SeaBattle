@@ -7,10 +7,12 @@ using System.Timers;
 
 namespace SeaBattleGame.Game
 {
-    public class GameSession : IGameSession
+    public class GameSession : IGameSession, IDisposable
     {
+        bool _isDisposed = false;
+
         public int MaxSessionDurationInMsc { get; private set; } = 600000;
-        public int MaxTurnDurationInMsc { get; private set; } = 10000;
+        public int MaxTurnDurationInMsc { get; private set; } = 15000;
         public string PlayerIdTurn { get; private set; }
 
         private System.Timers.Timer _gameTimer;
@@ -127,22 +129,25 @@ namespace SeaBattleGame.Game
             response.HitGameMapResponse = hitResponse;
             response.PlayerTurnId = PlayerIdTurn;
 
-            if (hitResponse.HitStatus == HitStatus.Missed)
+            if (!_isDisposed)
             {
-                ChangePlayerTurn();
+                if (hitResponse.HitStatus == HitStatus.Missed)
+                {
+                    ChangePlayerTurn();
 
-                _playerTurnTimer.Stop();
-                _playerTurnTimer.Start();
+                    _playerTurnTimer.Stop();
+                    _playerTurnTimer.Start();
+                }
+
+                if (hitResponse.HitStatus == HitStatus.Hitted)
+                {
+                    _playerTurnTimer.Stop();
+                    _playerTurnTimer.Interval = MaxTurnDurationInMsc;
+                    _playerTurnTimer.Start();
+                }
+
+                PlayerHit?.Invoke(this, sender, response);
             }
-
-            if (hitResponse.HitStatus == HitStatus.Hitted) 
-            {
-                _playerTurnTimer.Stop();
-                _playerTurnTimer.Interval = MaxTurnDurationInMsc;
-                _playerTurnTimer.Start();
-            }
-
-            PlayerHit?.Invoke(this, sender, response);
         }
 
         public IGamePlayer GetCurrentTurnPlayer()
@@ -168,12 +173,27 @@ namespace SeaBattleGame.Game
 
         public void Stop(IGamePlayer winnerPlayer)
         {
+            Dispose();
+
             GameSessionFinished?.Invoke(this, winnerPlayer);
         }
 
         public void Stop()
         {
+            Dispose();
+
             GameSessionFinished?.Invoke(this, null);
+        }
+
+        public void Dispose()
+        {
+            if (!_isDisposed)
+            { 
+                _gameTimer.Dispose();
+                _playerTurnTimer.Dispose();
+
+                _isDisposed = true;
+            }
         }
     }
 }
