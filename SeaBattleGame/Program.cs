@@ -9,8 +9,8 @@ namespace SeaBattleGame
     {
         private static bool _gameFinished = false;
 
-        private static IGamePlayer _player1 = new GamePlayer();
-        private static IGamePlayer _player2 = new GamePlayer();
+        private static IGamePlayer _player1;
+        private static IGamePlayer _player2;
 
         private static IGameMap _player1Map;
         private static IGameMap _player2Map;
@@ -34,22 +34,16 @@ namespace SeaBattleGame
                 throw new Exception("Ошибка при расставлении кораблей.");
             }
 
-            IGameSession gameSession = new GameSession
-            (
-                new GameSessionArgs
-                (
-                    new PlayerArgs(_player1Map, _player1),
-                    new PlayerArgs(_player2Map, _player2)
-                )
-            );
+            IGameSessionFactory sessionFactory = new GameSessionFactory();
 
-            gameSession.GameSessionFinished += (sender, winnerPlayerOrNll) => 
-            {
-                OnGameFinished(sender, winnerPlayerOrNll);
-            };
+            var sessionProduct = sessionFactory.CreateGameSession(_player1Map, _player2Map);
 
+            IGameSession gameSession = sessionProduct.GameSession;
+            _player1 = sessionProduct.GamePlayer1;
+            _player2 = sessionProduct.GamePlayer2;
+
+            gameSession.GameSessionFinished += OnGameFinished;
             gameSession.GameSessionTurnTimeHasPassed += OnPlayerTurnTimeHasPassed;
-
             gameSession.PlayerHit += OnPlayerHit;
 
             gameSession.Start();
