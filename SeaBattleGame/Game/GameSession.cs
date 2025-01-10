@@ -10,9 +10,10 @@ namespace SeaBattleGame.Game
     public class GameSession : IGameSession, IDisposable
     {
         bool _isDisposed = false;
+        bool _isFinished = false;
 
-        public int MaxSessionDurationInMsc { get; private set; } = 600000;
-        public int MaxTurnDurationInMsc { get; private set; } = 15000;
+        public int MaxSessionDurationInMsc { get; private set; } = 10000;
+        public int MaxTurnDurationInMsc { get; private set; } = 1000;
         public string PlayerIdTurn { get; private set; }
 
         private System.Timers.Timer _gameTimer;
@@ -48,6 +49,11 @@ namespace SeaBattleGame.Game
 
             _player1Map.AllShipsDestroyed += AllShipsDestroyed;
             _player2Map.AllShipsDestroyed += AllShipsDestroyed;
+        }
+
+        public bool IsFinished()
+        {
+            return _isFinished;
         }
 
         private void AllShipsDestroyed(IGameMap sender)
@@ -173,6 +179,8 @@ namespace SeaBattleGame.Game
 
         public void Stop(IGamePlayer winnerPlayer)
         {
+            _isFinished = true;
+
             Dispose();
 
             GameSessionFinished?.Invoke(this, winnerPlayer);
@@ -180,6 +188,8 @@ namespace SeaBattleGame.Game
 
         public void Stop()
         {
+            _isFinished = true;
+
             Dispose();
 
             GameSessionFinished?.Invoke(this, null);

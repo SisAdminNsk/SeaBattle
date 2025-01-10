@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SeaBattleApi.Services;
 using SeaBattleApi.Websockets;
+using System;
 using System.Net.WebSockets;
+using System.Text;
 
 namespace SeaBattle.Controllers
 {
@@ -12,38 +14,46 @@ namespace SeaBattle.Controllers
     {
         private readonly ILogger<StartGameController> _logger;
         private readonly IPlayerConnectionsService _playerConnectionService;
-        public StartGameController(ILogger<StartGameController> logger, IPlayerConnectionsService playerConnectionsService)
+        private readonly IGameSessionService _gameSessionService;
+        
+        public StartGameController
+        (
+            ILogger<StartGameController> logger,
+            IPlayerConnectionsService playerConnectionsService,
+            IGameSessionService gameSessionService
+        )
         {
             _logger = logger;
             _playerConnectionService = playerConnectionsService;
+            _gameSessionService = gameSessionService;
         }
 
         [AllowAnonymous]
         [HttpGet(Name = "StartGameController")]
-        public async Task<IActionResult> StartGame()
+        public async Task StartGame()
         { 
             if (HttpContext.WebSockets.IsWebSocketRequest)
             {
-                WebSocket newConnection = await HttpContext.WebSockets.AcceptWebSocketAsync();
+                WebSocket socket = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
-                PlayerConnection? playerConnection = _playerConnectionService.TryTakeFirstConnection();
+                var playerConnection = _playerConnectionService.TryTakeFirstConnection();
 
                 if(playerConnection != null)
                 {
-                    // небходимо создасть IGameSession внутри IGameSession небходимо слушать действия пользователя
-                    //  и триггерить асинхронные обратотчки в SesssionEventListener
+                    var sessionId = _gameSessionService.TryStartGameSession(playerConnection, new PlayerConnection(socket));
                 }
                 else
                 {
-                    _playerConnectionService.AddNewConnection(newConnection);
+                     var newPlayerConnection = _playerConnectionService.AddNewConnection(socket);
+
+                     await newPlayerConnection.ListenSocket();
                 }
-
-                // вернуть индентификатор сессии если она создана 
-                return Ok();
-
             }
-
-            return BadRequest("Метод поддерживает только websocket подключение.");
-        }
+            else
+            {
+                HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await HttpContext.Response.WriteAsync("Метод поддерживает только websocket подключение.");
+            }
+        }  
     }
 }

@@ -1,3 +1,5 @@
+using SeaBattleApi;
+
 
 namespace SeaBattle
 {
@@ -13,8 +15,11 @@ namespace SeaBattle
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddGameServices();
+            builder.Services.AllowAllOrigins();
 
             var app = builder.Build();
+            app.UseCors("AllowAll");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -26,7 +31,7 @@ namespace SeaBattle
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
+            app.UseWebSockets();
 
             app.MapControllers();
 

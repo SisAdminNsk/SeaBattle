@@ -5,6 +5,8 @@ namespace SeaBattleGame.Game
 {
     public interface IGameSession
     {
+        public bool IsFinished();
+
         delegate void OnGameSessionStarted(IGameSession sender, List<IGamePlayer> players);
         delegate void OnPlayerTurnTimeHasPassed(IGameSession sender, IGamePlayer player);
         delegate void OnGameSessionFinished(IGameSession sender, IGamePlayer? winnerPlayer);

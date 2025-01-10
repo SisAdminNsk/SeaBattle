@@ -6,23 +6,34 @@ namespace SeaBattleApi.Services
 {
     public class PlayerConnectionsService : IPlayerConnectionsService
     {
-        private static ConcurrentQueue<PlayerConnection> _playerConnections = new();
+        private static ConcurrentDictionary<Guid, PlayerConnection> _playerConnections = new();
         public PlayerConnection? TryTakeFirstConnection()
         {
-            var isSuccess = _playerConnections.TryDequeue(out var playerConnection);
+            var firstConnection = _playerConnections.Values
+                .OrderBy(pc => pc.ConnectedAt) 
+                .FirstOrDefault();
 
-            if (isSuccess)
+            if (firstConnection != null)
             {
-                return playerConnection;
+                RemoveConnection(firstConnection.Id);
             }
 
-            return null;
+            return firstConnection;
         }
-        public void AddNewConnection(WebSocket socket)
+        public PlayerConnection AddNewConnection(WebSocket socket)
         {
             var playerConnection = new PlayerConnection(socket);
 
-            _playerConnections.Enqueue(playerConnection);
+            _playerConnections.TryAdd(playerConnection.Id, playerConnection);
+
+            playerConnection.Completion.ContinueWith(t => RemoveConnection(playerConnection.Id));
+
+            return playerConnection;
+        }
+
+        private void RemoveConnection(Guid connectionId)
+        {
+            _playerConnections.TryRemove(connectionId, out _);
         }
     }
 }

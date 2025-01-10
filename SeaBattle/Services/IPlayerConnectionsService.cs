@@ -5,7 +5,7 @@ namespace SeaBattleApi.Services
 {
     public interface IPlayerConnectionsService
     {
-        void AddNewConnection(WebSocket socket);
+        PlayerConnection AddNewConnection(WebSocket socket);
         PlayerConnection? TryTakeFirstConnection();
     }
 }

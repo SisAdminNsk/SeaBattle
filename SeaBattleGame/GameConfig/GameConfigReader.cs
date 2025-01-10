@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace SeaBattleGame.GameConfig
 {
@@ -10,7 +9,7 @@ namespace SeaBattleGame.GameConfig
     }
     public class GameConfigReader
     {
-        //private readonly IConfiguration _configuration;
+        private static object _lock = new object();
 
         private Dictionary<GameMode, string> GameModeToConfigPath = new();
         public GameConfigReader()
@@ -22,7 +21,12 @@ namespace SeaBattleGame.GameConfig
         {
             var configPath = GameModeToConfigPath[gameMode];
 
-            var text = File.ReadAllText(configPath);
+            string text = "";
+
+            lock (_lock)
+            {
+                text = File.ReadAllText(configPath);
+            }
 
             GameModeConfig? gameConfig = JsonSerializer.Deserialize<GameModeConfig>(text);
 
