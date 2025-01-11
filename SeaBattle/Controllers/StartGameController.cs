@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.WebSockets;
 using SeaBattleApi.Services;
 using SeaBattleApi.Websockets;
-using System;
-using System.Net.WebSockets;
-using System.Text;
 
 namespace SeaBattle.Controllers
 {
@@ -14,8 +12,7 @@ namespace SeaBattle.Controllers
     {
         private readonly ILogger<StartGameController> _logger;
         private readonly IPlayerConnectionsService _playerConnectionService;
-        private readonly IGameSessionService _gameSessionService;
-        
+        private readonly IGameSessionService _gameSessionService;  
         public StartGameController
         (
             ILogger<StartGameController> logger,
@@ -40,13 +37,17 @@ namespace SeaBattle.Controllers
 
                 if(playerConnection != null)
                 {
-                    var sessionId = _gameSessionService.TryStartGameSession(playerConnection, new PlayerConnection(socket));
+                    var newPlayerConnection = new PlayerConnection(socket);
+
+                    var sessionId = _gameSessionService.TryStartGameSession(playerConnection, newPlayerConnection);
+
+                    await newPlayerConnection.ListenSocket();
                 }
                 else
                 {
-                     var newPlayerConnection = _playerConnectionService.AddNewConnection(socket);
+                    var newPlayerConnection = _playerConnectionService.AddNewConnection(socket);
 
-                     await newPlayerConnection.ListenSocket();
+                    await newPlayerConnection.ListenSocket();
                 }
             }
             else

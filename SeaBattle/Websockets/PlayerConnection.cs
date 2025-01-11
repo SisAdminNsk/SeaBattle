@@ -4,12 +4,13 @@ using System.Text;
 
 namespace SeaBattleApi.Websockets
 {
-    public class PlayerConnection
+    public class PlayerConnection : IPlayerConnection
     {
-        public delegate void OnMessageRecived(string message);
-        public event OnMessageRecived MessageRecived;
-        public DateTime ConnectedAt { get; private set; }
-        public Guid Id { get; private set; }
+        public event IPlayerConnection.OnMessageRecived MessageRecived;
+        public event IPlayerConnection.OnPlayerDisconnected PlayerDisconnected;
+
+        private DateTime _connectedAt;
+        private Guid _id;
 
         private WebSocket _socket;
 
@@ -17,13 +18,15 @@ namespace SeaBattleApi.Websockets
         public Task<PlayerConnection> Completion => _completionSource.Task;
         public IGamePlayer? GamePlayer { get; set; }
 
+        public Guid Id => _id;
+
+        public DateTime ConnectedAt => _connectedAt;
+
         public PlayerConnection(WebSocket socket)
         {
             _socket = socket;
-
-            Id = Guid.NewGuid();
-
-            ConnectedAt = DateTime.Now;
+            _id = Guid.NewGuid();
+            _connectedAt = DateTime.Now;
         }
 
         public async Task ListenSocket()
@@ -57,7 +60,15 @@ namespace SeaBattleApi.Websockets
             {
                 await CloseConnection();
                 _completionSource.SetResult(this);
+
+                PlayerDisconnected?.Invoke(this);
             }
+        }
+        public async Task SendMessage<T>(T message)
+        {
+            var arraySegment = _socket.ToArraySegment(message);
+
+            await _socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, CancellationToken.None);
         }
         private async Task CloseConnection()
         {
@@ -65,13 +76,6 @@ namespace SeaBattleApi.Websockets
             {
                 await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by the server", CancellationToken.None);
             }
-        }
-
-        public async Task SendMessage<T>(T message)
-        {
-            var arraySegment = _socket.ToArraySegment(message);
-
-            await _socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, CancellationToken.None);
         }
     }
 }

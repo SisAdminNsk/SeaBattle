@@ -15,25 +15,21 @@ namespace SeaBattleApi.Services
 
             if (firstConnection != null)
             {
-                RemoveConnection(firstConnection.Id);
+                _playerConnections.TryRemove(firstConnection.Id, out _);
             }
 
             return firstConnection;
         }
+
         public PlayerConnection AddNewConnection(WebSocket socket)
         {
             var playerConnection = new PlayerConnection(socket);
 
             _playerConnections.TryAdd(playerConnection.Id, playerConnection);
 
-            playerConnection.Completion.ContinueWith(t => RemoveConnection(playerConnection.Id));
+            playerConnection.Completion.ContinueWith(t => _playerConnections.TryRemove(playerConnection.Id, out _));
 
             return playerConnection;
-        }
-
-        private void RemoveConnection(Guid connectionId)
-        {
-            _playerConnections.TryRemove(connectionId, out _);
         }
     }
 }
