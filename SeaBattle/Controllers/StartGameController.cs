@@ -10,7 +10,7 @@ namespace SeaBattle.Controllers
     [Route("[controller]")]
     public class StartGameController : ControllerBase
     {
-        private readonly ILogger<StartGameController> _logger;
+        private readonly ILogger _logger;
         private readonly IPlayerConnectionsService _playerConnectionService;
         private readonly IGameSessionService _gameSessionService;  
         public StartGameController
@@ -39,7 +39,7 @@ namespace SeaBattle.Controllers
                 {
                     var newPlayerConnection = new PlayerConnection(socket);
 
-                    var sessionId = _gameSessionService.TryStartGameSession(playerConnection, newPlayerConnection);
+                    var sessionId = _gameSessionService.TryStartGameSession(playerConnection, newPlayerConnection, _logger);
 
                     await newPlayerConnection.ListenSocket();
                 }

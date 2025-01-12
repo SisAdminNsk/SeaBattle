@@ -18,7 +18,9 @@ namespace SeaBattleApi.Websockets
         private IPlayerConnection _player1Connection { get; set; }
         private IPlayerConnection _player2Connection { get; set; }
 
-        public SeaBattleSession(Guid id, IPlayerConnection player1Connection, IPlayerConnection player2Connection)
+        private readonly ILogger _logger;
+
+        public SeaBattleSession(Guid id, IPlayerConnection player1Connection, IPlayerConnection player2Connection, ILogger logger)
         {
             var gameSessionFactory = new GameSessionFactory();
             var gameConfigReader = new GameConfigReader();
@@ -45,22 +47,30 @@ namespace SeaBattleApi.Websockets
             _player1Connection.PlayerDisconnected += OnPlayerDisconnected;
             _player2Connection.PlayerDisconnected += OnPlayerDisconnected;
 
+            _logger = logger;
+
             _gameSession.Start();
         }
 
         private void OnPlayerDisconnected(IPlayerConnection sender)
         {
-            Console.WriteLine($"Сессия: {Id}, Игрок: {sender.Id}, Отключился.");
+            _logger.LogInformation($"Сессия: {Id}, Игрок: {sender.Id}, Отключился.");
+
+            //Console.WriteLine($"Сессия: {Id}, Игрок: {sender.Id}, Отключился.");
         }
 
         private void _player2Connection_MessageRecived(string message)
         {
-            Console.WriteLine($"Сессия: {Id}, Игрок: {_player2Connection.Id}, Сообщение: {message}");
+            _logger.LogInformation($"Сессия: {Id}, Игрок: {_player2Connection.Id}, Сообщение: {message}");
+
+            //Console.WriteLine($"Сессия: {Id}, Игрок: {_player2Connection.Id}, Сообщение: {message}");
         }
 
         private void _player1Connection_MessageRecived(string message)
         {
-            Console.WriteLine($"Сессия: {Id}, Игрок: {_player1Connection.Id}, Сообщение: {message}");
+            _logger.LogInformation($"Сессия: {Id}, Игрок: {_player1Connection.Id}, Сообщение: {message}");
+
+            //Console.WriteLine($"Сессия: {Id}, Игрок: {_player1Connection.Id}, Сообщение: {message}");
         }
 
         public bool IsFinished()
@@ -72,10 +82,12 @@ namespace SeaBattleApi.Websockets
         {
             _isFinished = true;
 
-            var message = "Сессия завершена";
+            var message = $"Сессия: {Id} завершена";
 
             _player1Connection.SendMessage(message);
             _player2Connection.SendMessage(message);
+
+            _logger.LogInformation(message);
 
             SessionFinished?.Invoke(this);
         }

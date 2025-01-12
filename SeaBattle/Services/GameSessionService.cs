@@ -6,11 +6,11 @@ namespace SeaBattleApi.Services
     public class GameSessionService : IGameSessionService
     {
         private static ConcurrentDictionary<Guid, Task<SeaBattleSession>> _activeSessions = new();
-        public Guid TryStartGameSession(PlayerConnection player1Connection, PlayerConnection player2Connection)
+        public Guid TryStartGameSession(PlayerConnection player1Connection, PlayerConnection player2Connection, ILogger logger)
         {
             var sessionId = Guid.NewGuid();
 
-            var seaBattleSession = new SeaBattleSession(sessionId, player1Connection, player2Connection);
+            var seaBattleSession = new SeaBattleSession(sessionId, player1Connection, player2Connection, logger);
 
             seaBattleSession.SessionFinished += OnSessionFinished;
 
