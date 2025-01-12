@@ -9,6 +9,7 @@ namespace SeaBattleApi.Websockets
         public event IPlayerConnection.OnMessageRecived MessageRecived;
         public event IPlayerConnection.OnPlayerDisconnected PlayerDisconnected;
 
+        private bool _disconnected = false;
         private DateTime _connectedAt;
         private Guid _id;
 
@@ -70,11 +71,25 @@ namespace SeaBattleApi.Websockets
 
             await _socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, CancellationToken.None);
         }
-        private async Task CloseConnection()
+        public async Task CloseConnection()
         {
             if (_socket.State == WebSocketState.Open)
             {
                 await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by the server", CancellationToken.None);
+
+                _disconnected = true;
+            }
+        }
+
+        public bool IsDisconnected()
+        {
+            return _disconnected;
+        }
+        public void Dispose()
+        {
+            if (!_disconnected)
+            {
+                CloseConnection().Wait();
             }
         }
     }

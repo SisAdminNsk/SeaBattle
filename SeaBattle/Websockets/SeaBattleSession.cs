@@ -5,12 +5,13 @@ using SeaBattleGame.Player;
 
 namespace SeaBattleApi.Websockets
 {
-    public class SeaBattleSession
+    public class SeaBattleSession : IDisposable
     {
         public Guid Id { get; private set; }
         private IGameSession _gameSession { get; set; }
 
         private bool _isFinished = false;
+        private bool _isDisposed = false;
 
         public delegate void OnSeaBattleSessionFinished(SeaBattleSession sender);
         public event OnSeaBattleSessionFinished SessionFinished;
@@ -71,7 +72,39 @@ namespace SeaBattleApi.Websockets
         {
             _isFinished = true;
 
+            var message = "Сессия завершена";
+
+            _player1Connection.SendMessage(message);
+            _player2Connection.SendMessage(message);
+
             SessionFinished?.Invoke(this);
-        }        
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_isDisposed)
+            {
+                if (disposing)
+                {
+                    _player1Connection.MessageRecived -= _player1Connection_MessageRecived;
+                    _player2Connection.MessageRecived -= _player2Connection_MessageRecived;
+
+                    _player1Connection.PlayerDisconnected -= OnPlayerDisconnected;
+                    _player2Connection.PlayerDisconnected -= OnPlayerDisconnected;
+
+                    (_player1Connection as IDisposable)?.Dispose();
+                    (_player2Connection as IDisposable)?.Dispose();
+                    (_gameSession as IDisposable)?.Dispose();
+                }
+
+                _isDisposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace SeaBattleGame.Game
         bool _isDisposed = false;
         bool _isFinished = false;
 
-        public int MaxSessionDurationInMsc { get; private set; } = 10000;
+        public int MaxSessionDurationInMsc { get; private set; } = 20000;
         public int MaxTurnDurationInMsc { get; private set; } = 1000;
         public string PlayerIdTurn { get; private set; }
 

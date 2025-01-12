@@ -26,8 +26,17 @@ namespace SeaBattleApi
 
         public static ArraySegment<byte> ToArraySegment<T>(this WebSocket socket, T data)
         {
+            byte[] byteArray;
+
+            if(data is string)
+            {
+                byteArray = Encoding.UTF8.GetBytes(data as string);
+
+                return new ArraySegment<byte>(byteArray);
+            }
+
             var jsonData = JsonSerializer.Serialize(data);
-            var byteArray = Encoding.UTF8.GetBytes(jsonData);
+            byteArray = Encoding.UTF8.GetBytes(jsonData);
 
             return new ArraySegment<byte>(byteArray);
         }

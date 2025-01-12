@@ -2,15 +2,17 @@
 
 namespace SeaBattleApi.Websockets
 {
-    public interface IPlayerConnection
+    public interface IPlayerConnection : IDisposable
     {
+        bool IsDisconnected();
         DateTime ConnectedAt { get; }
         Guid Id { get; }
         IGamePlayer? GamePlayer { get; set; }
-        public delegate void OnMessageRecived(string message);
-        public event OnMessageRecived MessageRecived;
-        public delegate void OnPlayerDisconnected(IPlayerConnection sender);
-        public event OnPlayerDisconnected PlayerDisconnected;
+        delegate void OnMessageRecived(string message);
+        event OnMessageRecived MessageRecived;
+        delegate void OnPlayerDisconnected(IPlayerConnection sender);
+        event OnPlayerDisconnected PlayerDisconnected;
+        Task CloseConnection();
         Task ListenSocket();
         Task SendMessage<T>(T message);
     }

@@ -26,9 +26,17 @@ namespace SeaBattleApi.Services
 
             _activeSessions[sessionId] = task;
 
+            task.ContinueWith(completedTask =>
+            {
+                if (completedTask.IsCompleted)
+                {
+                    seaBattleSession.Dispose();
+                }
+
+            }, TaskContinuationOptions.ExecuteSynchronously);
+
             return sessionId;
         }
-
         private void OnSessionFinished(SeaBattleSession sender)
         {
             RemoveSession(sender.Id);
@@ -36,7 +44,24 @@ namespace SeaBattleApi.Services
 
         private bool RemoveSession(Guid sessionId)
         {
-            return _activeSessions.TryRemove(sessionId, out var removedTask);
+            if (_activeSessions.TryRemove(sessionId, out var removedTask))
+            {
+                if (!removedTask.IsCompleted)
+                {
+                    removedTask.ContinueWith(completedTask =>
+                    {
+                        if (completedTask.Result is IDisposable disposableSession)
+                        {
+                            disposableSession.Dispose();
+                        }
+                    }, TaskContinuationOptions.ExecuteSynchronously);
+                }
+
+                return true;
+            }
+
+            return false;
         }
     }
 }
+

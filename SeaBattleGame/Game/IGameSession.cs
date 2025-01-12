@@ -3,7 +3,7 @@ using SeaBattleGame.Player;
 
 namespace SeaBattleGame.Game
 {
-    public interface IGameSession
+    public interface IGameSession : IDisposable
     {
         public bool IsFinished();
 
