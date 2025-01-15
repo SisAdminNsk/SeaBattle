@@ -39,6 +39,7 @@ namespace SeaBattleApi.Websockets
             _gameSession = product.GameSession;
             _gameSession.GameSessionFinished += InvokeGameSessionFinished;
             _gameSession.PlayerHit += OnPlayerHit;
+            _gameSession.GameSessionTurnTimeHasPassed += OnGameSessionTurnTimeHasPassed;
 
             Id = id;
 
@@ -62,6 +63,11 @@ namespace SeaBattleApi.Websockets
             _gameSession.Start();
         }
 
+        private void OnGameSessionTurnTimeHasPassed(IGameSession sender, IGamePlayer player)
+        {
+            // отправка игроку сообщение что начался его ход ходить 
+        }
+
         private void OnPlayerHit(IGameSession sender, IGamePlayer player, PlayerHitResponse playerHitResponse)
         {
             // отправка ответа по Websocket
@@ -70,6 +76,27 @@ namespace SeaBattleApi.Websockets
         private void OnPlayerDisconnected(IPlayerConnection sender)
         {
             _logger.LogInformation($"Сессия: {Id}, Игрок: {sender.Id}, Отключился."); // Дать победу игроку который остался
+
+            IPlayerConnection winnerPlayerConnection;
+
+            if (sender.Equals(_player1Connection))
+            {
+                winnerPlayerConnection = _player2Connection;
+            }
+            else
+            {
+                winnerPlayerConnection = _player1Connection;
+            }
+
+            winnerPlayerConnection.SendMessage("Ты победил");
+
+            _isFinished = true;
+
+            var message = $"Сессия: {Id} завершена";
+
+            _logger.LogInformation(message);
+
+            SessionFinished?.Invoke(this);
         }
 
         private void _player2Connection_MessageRecived(BasePlayerRequest message)
@@ -97,8 +124,15 @@ namespace SeaBattleApi.Websockets
 
             var message = $"Сессия: {Id} завершена";
 
-            _player1Connection.SendMessage(message);
-            _player2Connection.SendMessage(message);
+            if (!_player1Connection.IsDisconnected())
+            {
+                _player1Connection.SendMessage(message);
+            }
+
+            if (!_player2Connection.IsDisconnected())
+            {
+                _player2Connection.SendMessage(message);
+            }
 
             _logger.LogInformation(message);
 

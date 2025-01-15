@@ -41,34 +41,36 @@ namespace SeaBattleApi.Websockets
             {
                 while (_socket.State == WebSocketState.Open)
                 {
-                    var result = await _socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    if(IsPlayingGameSession()){
 
-                    if (result.MessageType == WebSocketMessageType.Close)
-                    {
-                        await CloseConnection();
-                        break;
-                    }
-                    else if (result.MessageType == WebSocketMessageType.Text)
-                    {
-                        string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        var result = await _socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-                        BasePlayerRequest? playerRequest = null;
-
-                        try
+                        if (result.MessageType == WebSocketMessageType.Close)
                         {
-                            playerRequest = JsonSerializer.Deserialize<BasePlayerRequest>(message);
-
+                            await CloseConnection();
+                            break;
                         }
-                        catch (JsonException ex)
+                        else if (result.MessageType == WebSocketMessageType.Text)
                         {
-                            Console.Error.WriteLine($"Ошибка десериализации запроса от игрока {_id}, ошибка: {ex.Message}");
-                        }
+                            string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
-                        if(playerRequest != null)
-                        {
-                            MessageRecived?.Invoke(playerRequest);
+                            BasePlayerRequest? playerRequest = null;
+
+                            try
+                            {
+                                playerRequest = JsonSerializer.Deserialize<BasePlayerRequest>(message);
+                            }
+                            catch (JsonException ex)
+                            {
+                                Console.Error.WriteLine($"Ошибка десериализации запроса от игрока {_id}, ошибка: {ex.Message}");
+                            }
+
+                            if (playerRequest != null)
+                            {
+                                MessageRecived?.Invoke(playerRequest);
+                            }
                         }
-                    }
+                    }          
                 }
             }
             catch (Exception ex)
@@ -98,6 +100,17 @@ namespace SeaBattleApi.Websockets
                 _disconnected = true;
             }
         }
+
+        public bool IsPlayingGameSession()
+        {
+            if(GamePlayer is null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public bool IsDisconnected()
         {
             return _disconnected;

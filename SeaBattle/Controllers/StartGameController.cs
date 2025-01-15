@@ -39,7 +39,7 @@ namespace SeaBattle.Controllers
                 {
                     var newPlayerConnection = new PlayerConnection(socket);
 
-                    var sessionId = _gameSessionService.TryStartGameSession(playerConnection, newPlayerConnection, _logger);
+                    var sessionId = _gameSessionService.TryStartGameSession(playerConnection, newPlayerConnection);
 
                     await newPlayerConnection.ListenSocket();
                 }
