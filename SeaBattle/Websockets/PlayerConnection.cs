@@ -1,6 +1,8 @@
-﻿using SeaBattleGame.Player;
+﻿using SeaBattleApi.Websockets.PlayerRequests;
+using SeaBattleGame.Player;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 
 namespace SeaBattleApi.Websockets
 {
@@ -26,6 +28,7 @@ namespace SeaBattleApi.Websockets
         public PlayerConnection(WebSocket socket)
         {
             _socket = socket;
+
             _id = Guid.NewGuid();
             _connectedAt = DateTime.Now;
         }
@@ -49,7 +52,22 @@ namespace SeaBattleApi.Websockets
                     {
                         string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
-                        MessageRecived?.Invoke(message);
+                        BasePlayerRequest? playerRequest = null;
+
+                        try
+                        {
+                            playerRequest = JsonSerializer.Deserialize<BasePlayerRequest>(message);
+
+                        }
+                        catch (JsonException ex)
+                        {
+                            Console.Error.WriteLine($"Ошибка десериализации запроса от игрока {_id}, ошибка: {ex.Message}");
+                        }
+
+                        if(playerRequest != null)
+                        {
+                            MessageRecived?.Invoke(playerRequest);
+                        }
                     }
                 }
             }
@@ -80,7 +98,6 @@ namespace SeaBattleApi.Websockets
                 _disconnected = true;
             }
         }
-
         public bool IsDisconnected()
         {
             return _disconnected;

@@ -1,4 +1,6 @@
-﻿using SeaBattleGame.Game;
+﻿using SeaBattleApi.Websockets.PlayerRequests;
+using SeaBattleGame.Game;
+using SeaBattleGame.Game.GameResponses;
 using SeaBattleGame.GameConfig;
 using SeaBattleGame.Map;
 using SeaBattleGame.Player;
@@ -8,15 +10,19 @@ namespace SeaBattleApi.Websockets
     public class SeaBattleSession : IDisposable
     {
         public Guid Id { get; private set; }
-        private IGameSession _gameSession { get; set; }
+        private IGameSession _gameSession;
 
         private bool _isFinished = false;
         private bool _isDisposed = false;
 
         public delegate void OnSeaBattleSessionFinished(SeaBattleSession sender);
         public event OnSeaBattleSessionFinished SessionFinished;
-        private IPlayerConnection _player1Connection { get; set; }
-        private IPlayerConnection _player2Connection { get; set; }
+
+        private IPlayerConnection _player1Connection;
+        private IPlayerConnection _player2Connection;
+
+        private IPlayerMessageHandler _player1MessageHandler;
+        private IPlayerMessageHandler _player2MessageHandler;
 
         private readonly ILogger _logger;
 
@@ -32,6 +38,7 @@ namespace SeaBattleApi.Websockets
 
             _gameSession = product.GameSession;
             _gameSession.GameSessionFinished += InvokeGameSessionFinished;
+            _gameSession.PlayerHit += OnPlayerHit;
 
             Id = id;
 
@@ -47,30 +54,36 @@ namespace SeaBattleApi.Websockets
             _player1Connection.PlayerDisconnected += OnPlayerDisconnected;
             _player2Connection.PlayerDisconnected += OnPlayerDisconnected;
 
+            _player1MessageHandler = new PlayerMessageHandler(_player1Connection.GamePlayer);
+            _player2MessageHandler = new PlayerMessageHandler(_player2Connection.GamePlayer);
+
             _logger = logger;
 
             _gameSession.Start();
         }
 
-        private void OnPlayerDisconnected(IPlayerConnection sender)
+        private void OnPlayerHit(IGameSession sender, IGamePlayer player, PlayerHitResponse playerHitResponse)
         {
-            _logger.LogInformation($"Сессия: {Id}, Игрок: {sender.Id}, Отключился.");
-
-            //Console.WriteLine($"Сессия: {Id}, Игрок: {sender.Id}, Отключился.");
+            // отправка ответа по Websocket
         }
 
-        private void _player2Connection_MessageRecived(string message)
+        private void OnPlayerDisconnected(IPlayerConnection sender)
+        {
+            _logger.LogInformation($"Сессия: {Id}, Игрок: {sender.Id}, Отключился."); // Дать победу игроку который остался
+        }
+
+        private void _player2Connection_MessageRecived(BasePlayerRequest message)
         {
             _logger.LogInformation($"Сессия: {Id}, Игрок: {_player2Connection.Id}, Сообщение: {message}");
 
-            //Console.WriteLine($"Сессия: {Id}, Игрок: {_player2Connection.Id}, Сообщение: {message}");
+            _player2MessageHandler.Handle(message);          
         }
 
-        private void _player1Connection_MessageRecived(string message)
+        private void _player1Connection_MessageRecived(BasePlayerRequest message)
         {
             _logger.LogInformation($"Сессия: {Id}, Игрок: {_player1Connection.Id}, Сообщение: {message}");
 
-            //Console.WriteLine($"Сессия: {Id}, Игрок: {_player1Connection.Id}, Сообщение: {message}");
+            _player1MessageHandler.Handle(message);
         }
 
         public bool IsFinished()

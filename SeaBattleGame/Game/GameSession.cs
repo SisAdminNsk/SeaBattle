@@ -12,8 +12,8 @@ namespace SeaBattleGame.Game
         bool _isDisposed = false;
         bool _isFinished = false;
 
-        public int MaxSessionDurationInMsc { get; private set; } = 20000;
-        public int MaxTurnDurationInMsc { get; private set; } = 1000;
+        public int MaxSessionDurationInMsc { get; private set; } = 900000;
+        public int MaxTurnDurationInMsc { get; private set; } = 20000;
         public string PlayerIdTurn { get; private set; }
 
         private System.Timers.Timer _gameTimer;
@@ -198,7 +198,16 @@ namespace SeaBattleGame.Game
         public void Dispose()
         {
             if (!_isDisposed)
-            { 
+            {
+                _gameTimer.Elapsed -= GameSessionTimeHasPassed;
+                _playerTurnTimer.Elapsed -= PlayerTurnTimeHasPassed;
+
+                _player1.Hit -= OnPlayerHit;
+                _player2.Hit -= OnPlayerHit;
+
+                _player1Map.AllShipsDestroyed -= AllShipsDestroyed;
+                _player2Map.AllShipsDestroyed -= AllShipsDestroyed;
+
                 _gameTimer.Dispose();
                 _playerTurnTimer.Dispose();
 

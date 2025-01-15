@@ -1,4 +1,5 @@
-﻿using SeaBattleGame.Player;
+﻿using SeaBattleApi.Websockets.PlayerRequests;
+using SeaBattleGame.Player;
 
 namespace SeaBattleApi.Websockets
 {
@@ -8,7 +9,7 @@ namespace SeaBattleApi.Websockets
         DateTime ConnectedAt { get; }
         Guid Id { get; }
         IGamePlayer? GamePlayer { get; set; }
-        delegate void OnMessageRecived(string message);
+        delegate void OnMessageRecived(BasePlayerRequest message);
         event OnMessageRecived MessageRecived;
         delegate void OnPlayerDisconnected(IPlayerConnection sender);
         event OnPlayerDisconnected PlayerDisconnected;
