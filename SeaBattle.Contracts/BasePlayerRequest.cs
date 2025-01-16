@@ -1,4 +1,4 @@
-﻿namespace SeaBattleApi.Websockets.PlayerRequests
+﻿namespace SeaBattle.Contracts
 {
     public abstract class BasePlayerRequest
     {

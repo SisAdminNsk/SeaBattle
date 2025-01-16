@@ -174,7 +174,7 @@ namespace SeaBattleGame.Game
             _gameTimer.Start();
             _playerTurnTimer.Start();
 
-            GameSessionStarted?.Invoke(this, new List<IGamePlayer> { _player1, _player2 });
+            GameSessionStarted?.Invoke(this, new List<IGamePlayer> { _player1, _player2 }, _player1);
         }
 
         public void Stop(IGamePlayer winnerPlayer)

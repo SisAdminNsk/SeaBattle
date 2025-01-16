@@ -1,4 +1,4 @@
-﻿using SeaBattleApi.Websockets.PlayerRequests;
+﻿using SeaBattle.Contracts;
 using SeaBattleGame.Player;
 
 namespace SeaBattleApi.Websockets

@@ -1,6 +1,6 @@
 ﻿using SeaBattleGame;
 
-namespace SeaBattleApi.Websockets.PlayerRequests
+namespace SeaBattle.Contracts
 {
     public class HitRequest : BasePlayerRequest
     {

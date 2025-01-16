@@ -1,4 +1,5 @@
-﻿using SeaBattleApi.Websockets.PlayerRequests;
+﻿using SeaBattle.Contracts;
+
 using SeaBattleGame.Game;
 using SeaBattleGame.Game.GameResponses;
 using SeaBattleGame.GameConfig;
@@ -40,6 +41,7 @@ namespace SeaBattleApi.Websockets
             _gameSession.GameSessionFinished += InvokeGameSessionFinished;
             _gameSession.PlayerHit += OnPlayerHit;
             _gameSession.GameSessionTurnTimeHasPassed += OnGameSessionTurnTimeHasPassed;
+            _gameSession.GameSessionStarted += OnGameSessionStarted;
 
             Id = id;
 
@@ -61,6 +63,37 @@ namespace SeaBattleApi.Websockets
             _logger = logger;
 
             _gameSession.Start();
+        }
+
+        private void OnGameSessionStarted(IGameSession sender, List<IGamePlayer> players, IGamePlayer playerTurn)
+        {
+            if (!_player1Connection.IsDisconnected())
+            {
+                _player1Connection.SendMessage
+                (
+                    new GameSessionStartedResponse
+                    (
+                        Id.ToString(),
+                        _player1Connection.GamePlayer.GetId(),
+                        _player2Connection.GamePlayer.GetId(),
+                        playerTurn.GetId()
+                    )
+                );     
+            }
+
+            if (!_player2Connection.IsDisconnected())
+            {
+                _player2Connection.SendMessage
+                (
+                    new GameSessionStartedResponse
+                    (
+                        Id.ToString(),
+                        _player2Connection.GamePlayer.GetId(),
+                        _player1Connection.GamePlayer.GetId(),
+                        playerTurn.GetId()
+                    )
+                );
+            }
         }
 
         private void OnGameSessionTurnTimeHasPassed(IGameSession sender, IGamePlayer player)
@@ -150,6 +183,11 @@ namespace SeaBattleApi.Websockets
 
                     _player1Connection.PlayerDisconnected -= OnPlayerDisconnected;
                     _player2Connection.PlayerDisconnected -= OnPlayerDisconnected;
+
+                    _gameSession.GameSessionStarted -= OnGameSessionStarted;
+                    _gameSession.GameSessionFinished -= InvokeGameSessionFinished;
+                    _gameSession.PlayerHit -= OnPlayerHit;
+                    _gameSession.GameSessionTurnTimeHasPassed -= OnGameSessionTurnTimeHasPassed;
 
                     (_player1Connection as IDisposable)?.Dispose();
                     (_player2Connection as IDisposable)?.Dispose();

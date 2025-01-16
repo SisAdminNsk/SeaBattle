@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SeaBattleGame\SeaBattleGame.csproj" />
+    <ProjectReference Include="..\SeaBattle.Contracts\SeaBattle.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
