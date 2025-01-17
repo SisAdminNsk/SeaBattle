@@ -21,7 +21,7 @@ namespace SeaBattleApi
         public static void AddGameServices(this IServiceCollection services)
         {
             services.AddTransient<IGameSessionService, GameSessionService>();
-            services.AddTransient<IStartGameService, GameConfigService>();
+            services.AddTransient<IStartGameService, StartGameService>();
             services.AddSingleton<IPlayerConnectionsService, PlayerConnectionsService>();
         }
 

@@ -1,0 +1,26 @@
+{
+    "GameMapSize": 15,
+  
+    "Ships": [
+      {
+        "Name": "single-deck",
+        "Size": 1,
+        "Count": 6
+      },
+      {
+        "Name": "double-deck",
+        "Size": 2,
+        "Count": 4
+      },
+      {
+        "Name": "three-deck",
+        "Size": 3,
+        "Count": 3
+      },
+      {
+        "Name": "four-deck",
+        "Size": 4,
+        "Count": 2
+      }
+    ]
+  }

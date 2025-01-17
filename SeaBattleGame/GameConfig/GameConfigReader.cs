@@ -15,6 +15,7 @@ namespace SeaBattleGame.GameConfig
         public GameConfigReader()
         {
             GameModeToConfigPath.Add(GameMode.StandartGameMode, "standartGameConfig.json");
+            GameModeToConfigPath.Add(GameMode.LongGameMode, "longGameConfig.json");
         }
 
         public GameModeConfig ReadConfig(GameMode gameMode)

@@ -1,5 +1,7 @@
-﻿using SeaBattle.Contracts;
+﻿using ErrorOr;
+using SeaBattle.Contracts;
 using SeaBattleGame.GameConfig;
+using SeaBattleGame.Map;
 
 namespace SeaBattleApi.Services
 {
@@ -9,18 +11,33 @@ namespace SeaBattleApi.Services
         {
             GameConfigReader reader = new GameConfigReader();
 
-            //reader.ReadConfig(GameMode.LongGameMode);
-
             var configs = new List<GameModeConfig>();
 
             configs.Add(reader.ReadConfig(GameMode.StandartGameMode));
+            configs.Add(reader.ReadConfig(GameMode.LongGameMode));
 
             return configs;
         }
 
-        public bool IsGameMapValid(PlayerGameMapRequest gameMapRequest)
+        public ErrorOr<GameMap> TryParseGameMap(PlayerGameMapRequest gameMapRequest)
         {
-            throw new NotImplementedException();
+            var gameMap = new GameMap(gameMapRequest.GameModeConfiguration);
+
+            foreach (var shipPosition in gameMapRequest.ShipPositions)
+            {
+                var ship = shipPosition.ship;
+                var startPosition = shipPosition.startPosition;
+                var shipOrientation = shipPosition.shipOrientation;
+
+                var shipAddedResponse = gameMap.TryAddShip(ship, startPosition, shipOrientation);
+
+                if (!shipAddedResponse.Success)
+                {
+                    return Error.Failure("ParseGameMapFailure", shipAddedResponse.ErrorMessage);
+                }
+            }
+
+            return gameMap;
         }
     }
 }

@@ -7,6 +7,7 @@ using SeaBattle.Contracts;
 using Microsoft.Extensions.Caching.Memory;
 using SeaBattleApi.Controllers;
 using System.Text.Json;
+using SeaBattleGame.Map;
 
 namespace SeaBattle.Controllers
 {
@@ -17,7 +18,7 @@ namespace SeaBattle.Controllers
         private readonly IMemoryCache _cache;
         private readonly ILogger _logger;
         private readonly IPlayerConnectionsService _playerConnectionService;
-        private readonly IGameSessionService _gameSessionService;  
+        private readonly IGameSessionService _gameSessionService;
         private readonly IStartGameService _startGameService;
         public StartGameController
         (
@@ -36,47 +37,51 @@ namespace SeaBattle.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet(Name = "GetAllGameConfigsController")]
+        [HttpGet("GetAllGameConfigs")]
         public async Task<ActionResult> GetAllGameConfigs()
         {
             return Ok(_startGameService.GetAllGameConfigs());
         }
 
         [AllowAnonymous]
-        [HttpPost(Name = "ValidateGameMapController")]
+        [HttpPost("ValidateGameMap")]
         public async Task<ActionResult> ValidateGameMap([FromBody] PlayerGameMapRequest playerGameMapRequest)
         {
-            if (_startGameService.IsGameMapValid(playerGameMapRequest))
+            var errorOrGameMap = _startGameService.TryParseGameMap(playerGameMapRequest);
+
+            if (errorOrGameMap.IsError)
             {
-                var accessToken = new StartGameAccessToken
+                var errorResponse = new
                 {
-                    Token = Guid.NewGuid().ToString(),
+                    ErrorCode = "InvalidGameMap",
+                    ErrorMessage = "Игровая карта невалидна",
+                    Details = new[]
+                    {
+                        "Ошибка заключается в клиентской части приложения.",
+                        "Протейстируйте клиента и убедитесь что карта правильно валидируется."
+                    }
                 };
 
-                _cache.Set(accessToken.Token, playerGameMapRequest, TimeSpan.FromMinutes(1));
-
-                return Ok(accessToken); 
+                return BadRequest(errorResponse);
             }
 
-            var errorResponse = new
+            var accessToken = new StartGameAccessToken
             {
-                ErrorCode = "InvalidGameMap",
-                ErrorMessage = "Игровая карта невалидна",
-                Details = new[]
-                {
-                    "Ошибка заключается в клиентской части приложения.",
-                    "Протейстируйте клиента и убедитесь что карта правильно валидируется."
-                }
+                Token = Guid.NewGuid().ToString(),
             };
 
-            return BadRequest(errorResponse);
+            var gameMap = errorOrGameMap.Value;
+
+            _cache.Set(accessToken.Token, gameMap, TimeSpan.FromMinutes(1));
+
+            return Ok(accessToken);
         }
 
         [AllowAnonymous]
-        [HttpGet(Name = "StartGameController")]
-        public async Task StartGame(string startGameAccessToken)
+        [HttpGet("StartGame")]
+        public async Task StartGame([FromQuery] string startGameAccessToken)
         {
-            PlayerGameMapRequest? playerGameMap = await GetPlayerGameMapOrWriteError(startGameAccessToken);
+            GameMap? playerGameMap = await GetPlayerGameMapOrWriteError(startGameAccessToken);
 
             if(playerGameMap != null)
             {
@@ -109,9 +114,9 @@ namespace SeaBattle.Controllers
             }  
         } 
         
-        private async Task<PlayerGameMapRequest?> GetPlayerGameMapOrWriteError(string playerAccessToken)
+        private async Task<GameMap?> GetPlayerGameMapOrWriteError(string playerAccessToken)
         {
-            if (!_cache.TryGetValue(playerAccessToken, out PlayerGameMapRequest? playerGameMap))
+            if (!_cache.TryGetValue(playerAccessToken, out GameMap? playerGameMap))
             {
                 HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
 
