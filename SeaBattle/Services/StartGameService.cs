@@ -25,9 +25,9 @@ namespace SeaBattleApi.Services
 
             foreach (var shipPosition in gameMapRequest.ShipPositions)
             {
-                var ship = shipPosition.ship;
-                var startPosition = shipPosition.startPosition;
-                var shipOrientation = shipPosition.shipOrientation;
+                var ship = shipPosition.Ship;
+                var startPosition = shipPosition.StartPosition;
+                var shipOrientation = shipPosition.ShipOrientation;
 
                 var shipAddedResponse = gameMap.TryAddShip(ship, startPosition, shipOrientation);
 

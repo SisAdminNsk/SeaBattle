@@ -6,6 +6,8 @@
         public string? ErrorMessage { get; set; }
         public Ship? Ship { get; set; }
         public List<GameCell> ShipLocation { get; set; }
+        public GameCell StartCell { get; set; }
+        public ShipOrientation ShipOrientation { get; set; }
         public ShipAddedResponse()
         {
 

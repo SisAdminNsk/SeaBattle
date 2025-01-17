@@ -5,15 +5,15 @@ namespace SeaBattle.Contracts
 {
     public class ShipPositionOnMap
     {
-        public Ship ship;
-        public GameCell startPosition;
-        public ShipOrientation shipOrientation;
+        public Ship Ship { get; set; }
+        public GameCell StartPosition { get; set; }
+        public ShipOrientation ShipOrientation { get; set; }
 
         public ShipPositionOnMap(Ship ship, GameCell startPosition, ShipOrientation shipOrientation)
         {
-            this.ship = ship;
-            this.startPosition = startPosition;
-            this.shipOrientation = shipOrientation;
+            Ship = ship;
+            StartPosition = startPosition;
+            ShipOrientation = shipOrientation;
         }
     }
 }

@@ -49,20 +49,14 @@ namespace SeaBattle.Controllers
         {
             var errorOrGameMap = _startGameService.TryParseGameMap(playerGameMapRequest);
 
+            var response = new ValidateGameMapResponse();
+
             if (errorOrGameMap.IsError)
             {
-                var errorResponse = new
-                {
-                    ErrorCode = "InvalidGameMap",
-                    ErrorMessage = "Игровая карта невалидна",
-                    Details = new[]
-                    {
-                        "Ошибка заключается в клиентской части приложения.",
-                        "Протейстируйте клиента и убедитесь что карта правильно валидируется."
-                    }
-                };
+                response.ErrorCode = "InvalidGameMap";
+                response.ErrorMessage = "Игровая карта невалидна";
 
-                return BadRequest(errorResponse);
+                return BadRequest(response);
             }
 
             var accessToken = new StartGameAccessToken
@@ -74,7 +68,10 @@ namespace SeaBattle.Controllers
 
             _cache.Set(accessToken.Token, gameMap, TimeSpan.FromMinutes(1));
 
-            return Ok(accessToken);
+            response.Success = true;
+            response.AccessToken = accessToken.Token;
+
+            return Ok(response);
         }
 
         [AllowAnonymous]
@@ -93,7 +90,7 @@ namespace SeaBattle.Controllers
 
                     if (playerConnection != null)
                     {
-                        var newPlayerConnection = new PlayerConnection(socket);
+                        var newPlayerConnection = new PlayerConnection(socket, playerGameMap);
 
                         var sessionId = _gameSessionService.TryStartGameSession(playerConnection, newPlayerConnection);
 
@@ -101,7 +98,7 @@ namespace SeaBattle.Controllers
                     }
                     else
                     {
-                        var newPlayerConnection = _playerConnectionService.AddNewConnection(socket);
+                        var newPlayerConnection = _playerConnectionService.AddNewConnection(socket, playerGameMap);
 
                         await newPlayerConnection.ListenSocket();
                     }

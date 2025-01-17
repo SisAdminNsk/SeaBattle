@@ -1,5 +1,5 @@
 ﻿using SeaBattle.Contracts;
-
+using SeaBattleGame.Map;
 using SeaBattleGame.Player;
 
 using System.Net.WebSockets;
@@ -22,14 +22,16 @@ namespace SeaBattleApi.Websockets
         private TaskCompletionSource<PlayerConnection> _completionSource = new();
         public Task<PlayerConnection> Completion => _completionSource.Task;
         public IGamePlayer? GamePlayer { get; set; }
+        public IGameMap GameMap { get; private set; }
 
         public Guid Id => _id;
 
         public DateTime ConnectedAt => _connectedAt;
 
-        public PlayerConnection(WebSocket socket)
+        public PlayerConnection(WebSocket socket, IGameMap gameMap)
         {
             _socket = socket;
+            GameMap = gameMap;
 
             _id = Guid.NewGuid();
             _connectedAt = DateTime.Now;

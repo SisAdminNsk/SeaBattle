@@ -212,6 +212,8 @@ namespace SeaBattleGame.Map
 
             ShipToLocation.Add(ship, shipLocation);
 
+            response.ShipOrientation = shipOrientation;
+            response.StartCell = startPosition;
             response.Ship = ship;
             response.Success = true;
             response.ShipLocation = shipLocation;

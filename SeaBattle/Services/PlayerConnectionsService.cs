@@ -1,5 +1,7 @@
 ﻿using SeaBattleApi.Websockets;
+using SeaBattleGame.Map;
 using System.Collections.Concurrent;
+using System.Net.Sockets;
 using System.Net.WebSockets;
 
 namespace SeaBattleApi.Services
@@ -17,13 +19,12 @@ namespace SeaBattleApi.Services
             {
                 _playerConnections.TryRemove(firstConnection.Id, out _);
             }
-
             return firstConnection;
         }
 
-        public PlayerConnection AddNewConnection(WebSocket socket)
+        public PlayerConnection AddNewConnection(WebSocket socket, IGameMap gameMap)
         {
-            var playerConnection = new PlayerConnection(socket);
+            var playerConnection = new PlayerConnection(socket, gameMap);
 
             _playerConnections.TryAdd(playerConnection.Id, playerConnection);
 
