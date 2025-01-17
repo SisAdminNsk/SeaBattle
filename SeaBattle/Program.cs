@@ -16,6 +16,7 @@ namespace SeaBattle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddGameServices();
+            builder.Services.AddMemoryCache();
             builder.Services.AllowAllOrigins();
 
             var app = builder.Build();

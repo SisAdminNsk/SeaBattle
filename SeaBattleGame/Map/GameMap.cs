@@ -6,6 +6,7 @@ namespace SeaBattleGame.Map
     public class GameMap : IGameMap
     {
         private GameModeConfig _gameModeConfig;
+
         private bool _isAllShipsPlaced = false;
         private bool _isAllShipsDestroyed = false;
         private Dictionary<int, int> _shipsSizeToCount = new();
@@ -368,6 +369,7 @@ namespace SeaBattleGame.Map
             InitializeMap(gameModeConfig.GameMapSize);
             InitializeShipsToCount(gameModeConfig.Ships);
         }
+
         private void InitializeShipsToCount(List<ConfigShip> configShips)
         {
             foreach(var configShip in configShips)
