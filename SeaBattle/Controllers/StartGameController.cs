@@ -13,16 +13,16 @@ namespace SeaBattle.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class StartGameController : ControllerBase
+    public class GameController : ControllerBase
     {
         private readonly IMemoryCache _cache;
         private readonly ILogger _logger;
         private readonly IPlayerConnectionsService _playerConnectionService;
         private readonly IGameSessionService _gameSessionService;
         private readonly IStartGameService _startGameService;
-        public StartGameController
+        public GameController
         (
-            ILogger<StartGameController> logger,
+            ILogger<GameController> logger,
             IPlayerConnectionsService playerConnectionsService,
             IGameSessionService gameSessionService,
             IStartGameService startGameService,

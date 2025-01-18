@@ -1,7 +1,13 @@
-﻿namespace SeaBattle.Contracts
+﻿using System.Diagnostics.Contracts;
+
+namespace SeaBattle.Contracts
 {
-    public abstract class BasePlayerResponse
+    public class BasePlayerResponse
     {
         public string MessageType { get; set; }
+        public BasePlayerResponse(string messageType)
+        {
+            MessageType = messageType;
+        }
     }
 }

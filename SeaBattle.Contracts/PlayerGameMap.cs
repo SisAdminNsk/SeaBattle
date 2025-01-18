@@ -13,5 +13,10 @@ namespace SeaBattle.Contracts
             GameModeConfiguration = config;
             ShipPositions = shipPositions;
         }
+
+        public PlayerGameMapRequest()
+        {
+            MessageType = "ValidateGameMap";
+        }
     }
 }

@@ -45,27 +45,24 @@ namespace SeaBattleApi.Websockets
             {
                 while (_socket.State == WebSocketState.Open)
                 {
-                    if(IsPlayingGameSession()){
+                    var result = await _socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-                        var result = await _socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        await CloseConnection();
+                        break;
+                    }
+                    else if (result.MessageType == WebSocketMessageType.Text)
+                    {
+                        string request = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
-                        if (result.MessageType == WebSocketMessageType.Close)
+                        var playerRequest = TryDeserializePlayerRequest(request);
+
+                        if (playerRequest != null)
                         {
-                            await CloseConnection();
-                            break;
+                            MessageRecived?.Invoke(playerRequest);
                         }
-                        else if (result.MessageType == WebSocketMessageType.Text)
-                        {
-                            string request = Encoding.UTF8.GetString(buffer, 0, result.Count);
-
-                            var playerRequest = TryDeserializePlayerRequest(request);
-
-                            if (playerRequest != null)
-                            {
-                                MessageRecived?.Invoke(playerRequest);
-                            }
-                        }
-                    }          
+                    }         
                 }
             }
             catch (Exception ex)
@@ -105,22 +102,12 @@ namespace SeaBattleApi.Websockets
         }
         public async Task CloseConnection()
         {
-            if (_socket.State == WebSocketState.Open)
+            if(_socket.State == WebSocketState.Open)
             {
                 await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by the server", CancellationToken.None);
 
                 _disconnected = true;
             }
-        }
-
-        public bool IsPlayingGameSession()
-        {
-            if(GamePlayer is null)
-            {
-                return false;
-            }
-
-            return true;
         }
 
         public bool IsDisconnected()

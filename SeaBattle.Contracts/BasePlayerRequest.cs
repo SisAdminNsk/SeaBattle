@@ -1,6 +1,6 @@
 ﻿namespace SeaBattle.Contracts
 {
-    public abstract class BasePlayerRequest
+    public class BasePlayerRequest
     {
         public string MessageType { get; set; }
     }

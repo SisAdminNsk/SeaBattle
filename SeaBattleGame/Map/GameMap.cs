@@ -229,8 +229,12 @@ namespace SeaBattleGame.Map
                 {
                     for (int j = startCell.Y; j < Size && !shipPlaced; j++)
                     {
-                        if (TryAddVerticalOrHorizontal(ship, new GameCell(i, j), forbiddenCells))
+                        var addedResponse = TryAddVerticalOrHorizontal(ship, new GameCell(i, j), forbiddenCells);
+
+                        if(addedResponse != null)
                         {
+                            response.Ships.Add(addedResponse);
+
                             shipPlaced = true;
                         }
                     }
@@ -242,8 +246,12 @@ namespace SeaBattleGame.Map
                     {
                         for (int j = 0; j < Size && !shipPlaced; j++)
                         {
-                            if (TryAddVerticalOrHorizontal(ship, new GameCell(i, j), forbiddenCells))
+                            var addedResponse = TryAddVerticalOrHorizontal(ship, new GameCell(i, j), forbiddenCells);
+
+                            if (addedResponse != null)
                             {
+                                response.Ships.Add(addedResponse);
+
                                 shipPlaced = true;
                             }
                         }
@@ -263,11 +271,11 @@ namespace SeaBattleGame.Map
 
             response.Success = true;
 
-            foreach(var ship in ships)
-            {
-                var shipAddedResponse = new ShipAddedResponse(ship, true, GetShipLocation(ship));
-                response.Ships.Add(shipAddedResponse);
-            }
+            //foreach(var ship in ships)
+            //{
+            //    var shipAddedResponse = new ShipAddedResponse(ship, true, GetShipLocation(ship));
+            //    response.Ships.Add(shipAddedResponse);
+            //}
 
             return response;
         }
@@ -302,11 +310,11 @@ namespace SeaBattleGame.Map
             return canBePlaced;
         }
 
-        private bool TryAddShip(Ship ship, GameCell gameCell, ShipOrientation orientation, HashSet<GameCell> forbiddenCells)
+        private ShipAddedResponse TryAddShip(Ship ship, GameCell gameCell, ShipOrientation orientation, HashSet<GameCell> forbiddenCells)
         {
-            var success = TryAddShip(ship, gameCell, orientation).Success;
+            var response = TryAddShip(ship, gameCell, orientation);
 
-            if (success)
+            if (response.Success)
             {
                 var shipLocation = GetShipLocation(ship);
                 var neighboursCells = GetNeighboursCells(ship);
@@ -320,31 +328,33 @@ namespace SeaBattleGame.Map
                 {
                     forbiddenCells.Add(neighbourCell);
                 }
-
-                return true;
             }
 
-            return false;
+            return response;
         }
-        private bool TryAddVerticalOrHorizontal(Ship ship, GameCell gameCell, HashSet<GameCell> forbiddenCells)
+        private ShipAddedResponse? TryAddVerticalOrHorizontal(Ship ship, GameCell gameCell, HashSet<GameCell> forbiddenCells)
         {
             if (CanPlaceShip(ship, gameCell, ShipOrientation.Horizontal, forbiddenCells))
             {
-                if (TryAddShip(ship, gameCell, ShipOrientation.Horizontal, forbiddenCells))
+                var tryAddHorizontalResponse = TryAddShip(ship, gameCell, ShipOrientation.Horizontal, forbiddenCells);
+
+                if (tryAddHorizontalResponse.Success)
                 {
-                    return true;
+                    return tryAddHorizontalResponse;
                 }
             }
 
             if (CanPlaceShip(ship, gameCell, ShipOrientation.Vertical, forbiddenCells))
             {
-                if (TryAddShip(ship, gameCell, ShipOrientation.Vertical, forbiddenCells))
+                var tryAddVerticalResponse = TryAddShip(ship, gameCell, ShipOrientation.Vertical, forbiddenCells);
+
+                if (tryAddVerticalResponse.Success)
                 {
-                    return true;
+                    return tryAddVerticalResponse;
                 }
             }
 
-            return false;
+            return null;
         }
 
         private void ShuffleShips(List<Ship> ships)

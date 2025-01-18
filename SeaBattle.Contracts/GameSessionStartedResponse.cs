@@ -7,14 +7,16 @@
         public string OpponentId { get; set; }
         public string PlayerTurnId { get; set; }
 
-        public GameSessionStartedResponse(string sessionId, string yourId, string opponentId, string playerTurnId)
+        public GameSessionStartedResponse(string sessionId, string yourId, string opponentId, string playerTurnId) : base("SessionStarted")
         {
-            MessageType = "SessionStarted";
-
             YourId = yourId;
             SessionId = sessionId;
             OpponentId = opponentId;
             PlayerTurnId = playerTurnId;
+        }
+        public GameSessionStartedResponse() : base("SessionStarted")
+        {
+
         }
     }
 }
