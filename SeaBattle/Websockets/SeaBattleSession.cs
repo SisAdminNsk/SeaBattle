@@ -3,7 +3,6 @@
 using SeaBattleGame.Game;
 using SeaBattleGame.Game.GameResponses;
 using SeaBattleGame.GameConfig;
-using SeaBattleGame.Map;
 using SeaBattleGame.Player;
 
 namespace SeaBattleApi.Websockets
@@ -34,8 +33,7 @@ namespace SeaBattleApi.Websockets
 
             var gameConfig = gameConfigReader.ReadConfig(GameMode.StandartGameMode);
 
-            // заполненные карты нужно будет передать при подключении и выполнить их валидацию на сервере, пока такая затычка
-            var product = gameSessionFactory.CreateGameSession(new GameMap(gameConfig), new GameMap(gameConfig));
+            var product = gameSessionFactory.CreateGameSession(player1Connection.GameMap, player2Connection.GameMap);
 
             _gameSession = product.GameSession;
             _gameSession.GameSessionFinished += InvokeGameSessionFinished;
@@ -69,36 +67,54 @@ namespace SeaBattleApi.Websockets
         {
             if (!_player1Connection.IsDisconnected())
             {
+                var message = new GameSessionStartedResponse
+                (
+                    Id.ToString(),
+                    _player1Connection.GamePlayer.GetId(),
+                    _player2Connection.GamePlayer.GetId(),
+                    playerTurn.GetId()
+                );
+
                 _player1Connection.SendMessage
                 (
-                    new GameSessionStartedResponse
-                    (
-                        Id.ToString(),
-                        _player1Connection.GamePlayer.GetId(),
-                        _player2Connection.GamePlayer.GetId(),
-                        playerTurn.GetId()
-                    )
+                    new BasePlayerResponse("SessionStarted", message) // вынести все типы сообщений в отедельный справочный класс
                 );     
             }
 
             if (!_player2Connection.IsDisconnected())
             {
+                var message = new GameSessionStartedResponse
+                (
+                    Id.ToString(),
+                    _player2Connection.GamePlayer.GetId(),
+                    _player1Connection.GamePlayer.GetId(),
+                    playerTurn.GetId()
+                );
+
                 _player2Connection.SendMessage
                 (
-                    new GameSessionStartedResponse
-                    (
-                        Id.ToString(),
-                        _player2Connection.GamePlayer.GetId(),
-                        _player1Connection.GamePlayer.GetId(),
-                        playerTurn.GetId()
-                    )
+                   new BasePlayerResponse("SessionStarted", message)
                 );
             }
         }
 
         private void OnGameSessionTurnTimeHasPassed(IGameSession sender, IGamePlayer player)
         {
-            // отправка игроку сообщение что начался его ход ходить 
+            var currentTurnPlayer = sender.GetCurrentTurnPlayer();
+
+            var turnChangedResponse = new PlayerTurnChangedResponse(currentTurnPlayer.GetId());
+
+            var response = new BasePlayerResponse("PlayerTurnChanged", turnChangedResponse);
+
+            if (!_player1Connection.IsDisconnected())
+            {
+                _player1Connection.SendMessage(response);
+            }
+
+            if (!_player2Connection.IsDisconnected())
+            {
+                _player2Connection.SendMessage(response);
+            }
         }
 
         private void OnPlayerHit(IGameSession sender, IGamePlayer player, PlayerHitResponse playerHitResponse)
@@ -121,7 +137,9 @@ namespace SeaBattleApi.Websockets
                 winnerPlayerConnection = _player1Connection;
             }
 
-            winnerPlayerConnection.SendMessage("Ты победил");
+            var response = new PlayerWinResponse(winnerPlayerConnection.GamePlayer.GetId());
+
+            winnerPlayerConnection.SendMessage(new BasePlayerResponse("PlayerWin", response)); // PlayerWinResponse 
 
             _isFinished = true;
 

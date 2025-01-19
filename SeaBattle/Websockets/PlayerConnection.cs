@@ -22,8 +22,7 @@ namespace SeaBattleApi.Websockets
         private TaskCompletionSource<PlayerConnection> _completionSource = new();
         public Task<PlayerConnection> Completion => _completionSource.Task;
         public IGamePlayer? GamePlayer { get; set; }
-        public IGameMap GameMap { get; private set; }
-
+        public IGameMap GameMap { get; }
         public Guid Id => _id;
 
         public DateTime ConnectedAt => _connectedAt;
