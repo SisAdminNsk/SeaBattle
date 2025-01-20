@@ -210,6 +210,33 @@ namespace SeaBattleConsoleClient
             }
         }
 
+        private void OnSessionFinishedResponse(GameSessionFinishedResponse sessionFinishedResponse)
+        {
+            _gameRunning = false;
+
+            Console.Clear();
+            Console.WriteLine("Ваша карта:");
+            _gameMap.PrintGameMap();
+            Console.WriteLine("\nКарта противника:");
+            _oponnentMap.Print();
+
+            if (sessionFinishedResponse.IsDraw)
+            {             
+                Console.WriteLine("Ничья");
+            }
+            
+            if(sessionFinishedResponse.WinnerPlayerId == _gamePlayerId)
+            {
+                Console.WriteLine("\nВы победили");
+            }
+            else
+            {
+                Console.WriteLine("\nПоражение");
+            }
+
+            Thread.Sleep(2000);
+        }
+
         private void OnMessageRecived(BasePlayerResponse message)
         {
             if (message.MessageType == "SessionStarted")
@@ -245,6 +272,13 @@ namespace SeaBattleConsoleClient
                 var playerHitResponse = message.GetResponse<PlayerHitResponse>();
 
                 OnOpponentHitResponse(playerHitResponse);
+            }
+
+            if(message.MessageType == "SessionFinished")
+            {
+                var sessionFinishedResponse = message.GetResponse<GameSessionFinishedResponse>();
+
+                OnSessionFinishedResponse(sessionFinishedResponse);
             }
         }
 
@@ -453,7 +487,15 @@ namespace SeaBattleConsoleClient
                     else
                     {
                         var gameCell = new GameCell(x, y);
-                        await MakeHit(gameCell);
+
+                        if(_gameMap.IsCellOnGameMap(gameCell))
+                        {
+                            await MakeHit(gameCell);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Невалидный ввод, координаты вне карты.");
+                        }
                     }
                 }
                 else

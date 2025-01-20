@@ -193,14 +193,25 @@ namespace SeaBattleApi.Websockets
 
             var message = $"Сессия: {Id} завершена";
 
+            var winnerPlayerId = Guid.Empty.ToString();
+
+            if (winnerPlayer != null)
+            {
+                winnerPlayerId = winnerPlayer.GetId();
+            }
+
+            var sessionFinishedResponse = new GameSessionFinishedResponse(Id.ToString(), winnerPlayerId, message);
+
+            var response = new BasePlayerResponse("SessionFinished", sessionFinishedResponse);
+
             if (!_player1Connection.IsDisconnected())
             {
-                await _player1Connection.SendMessage(message);
+                await _player1Connection.SendMessage(response);
             }
 
             if (!_player2Connection.IsDisconnected())
             {
-                await _player2Connection.SendMessage(message);
+                await _player2Connection.SendMessage(response);
             }
 
             _logger.LogInformation(message);

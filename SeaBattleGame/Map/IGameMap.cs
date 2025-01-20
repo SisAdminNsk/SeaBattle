@@ -11,6 +11,7 @@ namespace SeaBattleGame.Map
     {
         delegate void OnAllShipsDestroyed(IGameMap sender);
         event OnAllShipsDestroyed AllShipsDestroyed;
+        bool IsCellOnGameMap(GameCell cell);
         Dictionary<GameCell, Ship?> GetCellsToShipMap();
         ShipsAddedResponse TryAddShipsRandomly(List<Ship> ships);
         ShipAddedResponse TryAddShip(Ship ship, GameCell startPosition, ShipOrientation shipOrientation);

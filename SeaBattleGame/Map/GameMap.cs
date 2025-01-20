@@ -78,7 +78,7 @@ namespace SeaBattleGame.Map
 
             return neighboursGameCells;
         }
-        private bool IsCellOnGameMap(GameCell cell)
+        public bool IsCellOnGameMap(GameCell cell)
         {
             return (cell.X >= 0 && cell.X < Size) && (cell.Y >= 0 && cell.Y < Size);
         }
