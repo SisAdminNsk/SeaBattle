@@ -1,14 +1,20 @@
-﻿namespace SeaBattle.Contracts
+﻿using System.Text.Json;
+
+namespace SeaBattle.Contracts
 {
     public class BasePlayerRequest
     {
         public string MessageType { get; set; }
         public object Request { get; set; }
 
-        public BasePlayerRequest(string type, object request)
+        public BasePlayerRequest(string messageType, object request)
         {
-            MessageType = type;
+            MessageType = messageType;
             Request = request;
+        }
+        public T GetRequest<T>()
+        {
+            return JsonSerializer.Deserialize<T>(Request.ToString());
         }
     }
 }

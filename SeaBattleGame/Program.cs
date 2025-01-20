@@ -54,7 +54,7 @@ namespace SeaBattleGame
             }
         }
 
-        private static void OnPlayerHit(IGameSession sender, IGamePlayer player, Game.GameResponses.PlayerHitResponse playerHitResponse)
+        private static async Task OnPlayerHit(IGameSession sender, IGamePlayer player, Game.Responses.PlayerHitResponse playerHitResponse)
         {
             Console.Clear();
             ProcessGame(sender);
@@ -92,13 +92,13 @@ namespace SeaBattleGame
                 }
             }
         }
-        private static void OnPlayerTurnTimeHasPassed(IGameSession sender, IGamePlayer player)
+        private static async Task OnPlayerTurnTimeHasPassed(IGameSession sender, IGamePlayer player)
         {
             Console.Clear();
             ProcessGame(sender);
         }
 
-        private static void OnGameFinished(IGameSession sender, IGamePlayer? winnerPlayer)
+        private static async Task OnGameFinished(IGameSession sender, IGamePlayer? winnerPlayer)
         {
             Console.Clear();
 

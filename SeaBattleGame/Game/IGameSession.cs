@@ -1,5 +1,6 @@
-﻿using SeaBattleGame.Game.GameResponses;
-using SeaBattleGame.Player;
+﻿using SeaBattleGame.Player;
+
+using SeaBattleGame.Game.Responses;
 
 namespace SeaBattleGame.Game
 {
@@ -7,10 +8,10 @@ namespace SeaBattleGame.Game
     {
         public bool IsFinished();
 
-        delegate void OnGameSessionStarted(IGameSession sender, List<IGamePlayer> players, IGamePlayer playerTurn);
-        delegate void OnPlayerTurnTimeHasPassed(IGameSession sender, IGamePlayer player);
-        delegate void OnGameSessionFinished(IGameSession sender, IGamePlayer? winnerPlayer);
-        delegate void OnPlayerHit(IGameSession sender, IGamePlayer player, PlayerHitResponse playerHitResponse);
+        delegate Task OnGameSessionStarted(IGameSession sender, List<IGamePlayer> players, IGamePlayer playerTurn);
+        delegate Task OnPlayerTurnTimeHasPassed(IGameSession sender, IGamePlayer player);
+        delegate Task OnGameSessionFinished(IGameSession sender, IGamePlayer? winnerPlayer);
+        delegate Task OnPlayerHit(IGameSession sender, IGamePlayer player, PlayerHitResponse playerHitResponse);
 
         event OnGameSessionStarted GameSessionStarted;
         event OnGameSessionFinished GameSessionFinished;

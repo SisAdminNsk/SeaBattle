@@ -1,7 +1,7 @@
 ﻿using SeaBattle.Contracts;
 
 using SeaBattleGame.Game;
-using SeaBattleGame.Game.GameResponses;
+using SeaBattleGame.Game.Responses;
 using SeaBattleGame.GameConfig;
 using SeaBattleGame.Player;
 
@@ -63,7 +63,7 @@ namespace SeaBattleApi.Websockets
             _gameSession.Start();
         }
 
-        private void OnGameSessionStarted(IGameSession sender, List<IGamePlayer> players, IGamePlayer playerTurn)
+        private async Task OnGameSessionStarted(IGameSession sender, List<IGamePlayer> players, IGamePlayer playerTurn)
         {
             if (!_player1Connection.IsDisconnected())
             {
@@ -75,9 +75,9 @@ namespace SeaBattleApi.Websockets
                     playerTurn.GetId()
                 );
 
-                _player1Connection.SendMessage
+                await _player1Connection.SendMessage
                 (
-                    new BasePlayerResponse("SessionStarted", message) // вынести все типы сообщений в отедельный справочный класс
+                    new BasePlayerResponse("SessionStarted", message)
                 );     
             }
 
@@ -91,14 +91,14 @@ namespace SeaBattleApi.Websockets
                     playerTurn.GetId()
                 );
 
-                _player2Connection.SendMessage
+                await _player2Connection.SendMessage
                 (
                    new BasePlayerResponse("SessionStarted", message)
                 );
             }
         }
 
-        private void OnGameSessionTurnTimeHasPassed(IGameSession sender, IGamePlayer player)
+        private async Task OnGameSessionTurnTimeHasPassed(IGameSession sender, IGamePlayer player)
         {
             var currentTurnPlayer = sender.GetCurrentTurnPlayer();
 
@@ -108,23 +108,41 @@ namespace SeaBattleApi.Websockets
 
             if (!_player1Connection.IsDisconnected())
             {
-                _player1Connection.SendMessage(response);
+                await _player1Connection.SendMessage(response);
             }
 
             if (!_player2Connection.IsDisconnected())
             {
-                _player2Connection.SendMessage(response);
+                await _player2Connection.SendMessage(response);
             }
         }
 
-        private void OnPlayerHit(IGameSession sender, IGamePlayer player, PlayerHitResponse playerHitResponse)
+        private async Task OnPlayerHit(IGameSession sender, IGamePlayer player, PlayerHitResponse playerHitResponse)
         {
-            // отправка ответа по Websocket
+            var response = new BasePlayerResponse("PlayerHit", playerHitResponse);
+            var oponnetResposne = new BasePlayerResponse("OpponentHit", playerHitResponse);
+
+            if (_player1Connection.GamePlayer.Equals(player))
+            {
+                if (!_player1Connection.IsDisconnected())
+                {
+                    await _player1Connection.SendMessage(response);
+                    await _player2Connection.SendMessage(oponnetResposne);             
+                }
+            }
+            else
+            {
+                if (!_player2Connection.IsDisconnected())
+                {
+                    await _player2Connection.SendMessage(response);
+                    await _player1Connection.SendMessage(oponnetResposne);
+                }
+            }
         }
 
         private void OnPlayerDisconnected(IPlayerConnection sender)
         {
-            _logger.LogInformation($"Сессия: {Id}, Игрок: {sender.Id}, Отключился."); // Дать победу игроку который остался
+            _logger.LogInformation($"Сессия: {Id}, Игрок: {sender.Id}, Отключился."); 
 
             IPlayerConnection winnerPlayerConnection;
 
@@ -139,7 +157,7 @@ namespace SeaBattleApi.Websockets
 
             var response = new PlayerWinResponse(winnerPlayerConnection.GamePlayer.GetId());
 
-            winnerPlayerConnection.SendMessage(new BasePlayerResponse("PlayerWin", response)); // PlayerWinResponse 
+            winnerPlayerConnection.SendMessage(new BasePlayerResponse("PlayerWin", response));
 
             _isFinished = true;
 
@@ -169,7 +187,7 @@ namespace SeaBattleApi.Websockets
             return _isFinished;
         }
 
-        private void InvokeGameSessionFinished(IGameSession sender, IGamePlayer? winnerPlayer)
+        private async Task InvokeGameSessionFinished(IGameSession sender, IGamePlayer? winnerPlayer)
         {
             _isFinished = true;
 
@@ -177,12 +195,12 @@ namespace SeaBattleApi.Websockets
 
             if (!_player1Connection.IsDisconnected())
             {
-                _player1Connection.SendMessage(message);
+                await _player1Connection.SendMessage(message);
             }
 
             if (!_player2Connection.IsDisconnected())
             {
-                _player2Connection.SendMessage(message);
+                await _player2Connection.SendMessage(message);
             }
 
             _logger.LogInformation(message);

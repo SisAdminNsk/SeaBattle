@@ -1,6 +1,6 @@
 ﻿using SeaBattleGame.Map.MapResponses;
 
-namespace SeaBattleGame.Game.GameResponses
+namespace SeaBattleGame.Game.Responses
 {
     public class PlayerHitResponse
     {
@@ -9,7 +9,7 @@ namespace SeaBattleGame.Game.GameResponses
         public string PlayerTurnId { get; set; }
         public HitGameMapResponse HitGameMapResponse { get; set; }
 
-        public PlayerHitResponse(string errorMessage) 
+        public PlayerHitResponse(string errorMessage)
         {
             ErrorMessage = errorMessage;
         }

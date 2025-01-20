@@ -1,4 +1,4 @@
-﻿using SeaBattleGame.Game.GameResponses;
+﻿using SeaBattleGame.Game.Responses;
 using SeaBattleGame.GameConfig;
 using SeaBattleGame.Map;
 using SeaBattleGame.Map.MapResponses;
@@ -13,7 +13,7 @@ namespace SeaBattleGame.Game
         bool _isFinished = false;
 
         public int MaxSessionDurationInMsc { get; private set; } = 900000;
-        public int MaxTurnDurationInMsc { get; private set; } = 10000;
+        public int MaxTurnDurationInMsc { get; private set; } = 25000;
         public string PlayerIdTurn { get; private set; }
 
         private System.Timers.Timer _gameTimer;
@@ -140,7 +140,6 @@ namespace SeaBattleGame.Game
                 if (hitResponse.HitStatus == HitStatus.Missed)
                 {
                     ChangePlayerTurn();
-
                     _playerTurnTimer.Stop();
                     _playerTurnTimer.Start();
                 }
@@ -151,6 +150,8 @@ namespace SeaBattleGame.Game
                     _playerTurnTimer.Interval = MaxTurnDurationInMsc;
                     _playerTurnTimer.Start();
                 }
+
+                response.PlayerTurnId = PlayerIdTurn;
 
                 PlayerHit?.Invoke(this, sender, response);
             }
