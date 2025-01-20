@@ -6,7 +6,6 @@ using SeaBattleGame.Map;
 using SeaBattleGame;
 using System.Net.WebSockets;
 
-
 namespace SeaBattleConsoleClient
 {
     class Game
@@ -384,7 +383,7 @@ namespace SeaBattleConsoleClient
                         }
 
                         var startCell = new GameCell(col, row);
-                        var ship = new Ship(configShip.Size);
+                        var ship = new Ship(configShip.Size, Guid.NewGuid().ToString());
 
                         var addResponse = gameMap.TryAddShip(ship, startCell, shipOrientation);
 
@@ -416,7 +415,7 @@ namespace SeaBattleConsoleClient
             {
                 for (int i = 0; i < confShip.Count; i++)
                 {
-                    ships.Add(new Ship(confShip.Size));
+                    ships.Add(new Ship(confShip.Size, Guid.NewGuid().ToString()));
                 }
             }
 

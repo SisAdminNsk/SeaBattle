@@ -10,7 +10,7 @@
             {
                 for(int i = 0; i < configShip.Count; i++)
                 {
-                    ships.Add(new Ship(configShip.Size));
+                    ships.Add(new Ship(configShip.Size, Guid.NewGuid().ToString()));
                 }
             }
 

@@ -175,8 +175,20 @@ namespace SeaBattleConsoleClient
 
                     if (hittedShip.Killed)
                     {
+                        MarkAllCellsWithShipAsKilled(hittedShip);
                         FillDestroyedShipArea(hittedShip);
                     }
+                }
+            }
+        }
+
+        private void MarkAllCellsWithShipAsKilled(Ship ship)
+        {
+            foreach(var cell in _cellToShip.Keys)
+            {
+                if (_cellToShip[cell] != null && _cellToShip[cell].Id  == ship.Id)
+                {
+                    _cellToShip[cell].Killed = true;
                 }
             }
         }
