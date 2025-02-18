@@ -1,8 +1,9 @@
 ﻿using SeaBattle.Contracts;
-
+using SeaBattleGame;
 using SeaBattleGame.Game;
 using SeaBattleGame.Game.Responses;
 using SeaBattleGame.GameConfig;
+using SeaBattleGame.Map.MapResponses;
 using SeaBattleGame.Player;
 
 namespace SeaBattleApi.Websockets
@@ -187,7 +188,7 @@ namespace SeaBattleApi.Websockets
             return _isFinished;
         }
 
-        private async Task InvokeGameSessionFinished(IGameSession sender, IGamePlayer? winnerPlayer)
+        private async Task InvokeGameSessionFinished(IGameSession sender, IGamePlayer? winnerPlayer, HitGameMapResponse? hitGameMapResponse)
         {
             _isFinished = true;
 
@@ -200,7 +201,7 @@ namespace SeaBattleApi.Websockets
                 winnerPlayerId = winnerPlayer.GetId();
             }
 
-            var sessionFinishedResponse = new GameSessionFinishedResponse(Id.ToString(), winnerPlayerId, message);
+            var sessionFinishedResponse = new GameSessionFinishedResponse(Id.ToString(), winnerPlayerId, message, hitGameMapResponse);
 
             var response = new BasePlayerResponse("SessionFinished", sessionFinishedResponse);
 

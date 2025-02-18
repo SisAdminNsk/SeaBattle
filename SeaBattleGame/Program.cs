@@ -1,6 +1,8 @@
 ﻿using SeaBattleGame.Game;
+using SeaBattleGame.Game.Responses;
 using SeaBattleGame.GameConfig;
 using SeaBattleGame.Map;
+using SeaBattleGame.Map.MapResponses;
 using SeaBattleGame.Player;
 
 namespace SeaBattleGame
@@ -54,7 +56,7 @@ namespace SeaBattleGame
             }
         }
 
-        private static async Task OnPlayerHit(IGameSession sender, IGamePlayer player, Game.Responses.PlayerHitResponse playerHitResponse)
+        private static async Task OnPlayerHit(IGameSession sender, IGamePlayer player, PlayerHitResponse playerHitResponse)
         {
             Console.Clear();
             ProcessGame(sender);
@@ -98,7 +100,7 @@ namespace SeaBattleGame
             ProcessGame(sender);
         }
 
-        private static async Task OnGameFinished(IGameSession sender, IGamePlayer? winnerPlayer)
+        private static async Task OnGameFinished(IGameSession sender, IGamePlayer? winnerPlayer, HitGameMapResponse lastDestroyedShip)
         {
             Console.Clear();
 

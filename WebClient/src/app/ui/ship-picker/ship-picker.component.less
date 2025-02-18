@@ -1,0 +1,52 @@
+.ships-picker {
+    margin-bottom: 20px;
+  
+    .ship-item {
+      margin: 10px 0;
+  
+      button {
+        padding: 5px 10px;
+        margin-right: 10px;
+        cursor: pointer;
+      }
+  
+      span {
+        font-size: 14px;
+        color: #666;
+      }
+    }
+  
+    button[disabled] {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  
+    .ship-preview {
+      display: flex;
+      margin-top: 10px;
+      background-color: #ccc;
+      border: 1px solid #000;
+      cursor: grab;
+  
+      .ship-part {
+        width: 30px;
+        height: 30px;
+        border: 1px solid #000;
+        box-sizing: border-box;
+      }
+  
+      &.horizontal {
+        flex-direction: row;
+        width: fit-content; 
+      }
+  
+      &.vertical {
+        flex-direction: column;
+        width: 30px; 
+      }
+    }
+
+    .ship-preview:active{
+      cursor: grabbing; 
+    }
+  }

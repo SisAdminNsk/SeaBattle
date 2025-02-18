@@ -54,7 +54,7 @@ namespace SeaBattle.Controllers
             if (errorOrGameMap.IsError)
             {
                 response.ErrorCode = "InvalidGameMap";
-                response.ErrorMessage = "Игровая карта невалидна";
+                response.ErrorMessage = "Invalid game map request";
 
                 return BadRequest(response);
             }
@@ -106,7 +106,7 @@ namespace SeaBattle.Controllers
                 else
                 {
                     HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-                    await HttpContext.Response.WriteAsync("Метод поддерживает только websocket подключение.");
+                    await HttpContext.Response.WriteAsync("this endpoint allows only websocket connection.");
                 }
             }  
         } 
@@ -120,7 +120,7 @@ namespace SeaBattle.Controllers
                 var errorResponse = new
                 {
                     ErrorCode = "InvalidStartGameAccessToken",
-                    ErrorMessage = "Не удалось получить игровую карту, переданный токен начала игры истек либо неверен"
+                    ErrorMessage = "invalid start game token, token is wrong or outdated"
                 };
 
                 var jsonResponse = JsonSerializer.Serialize(errorResponse);

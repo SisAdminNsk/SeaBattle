@@ -9,7 +9,7 @@ namespace SeaBattleGame.Map
     }
     public interface IGameMap
     {
-        delegate void OnAllShipsDestroyed(IGameMap sender);
+        delegate void OnAllShipsDestroyed(IGameMap sender, HitGameMapResponse hitGameMapResponse);
         event OnAllShipsDestroyed AllShipsDestroyed;
         bool IsCellOnGameMap(GameCell cell);
         Dictionary<GameCell, Ship?> GetCellsToShipMap();

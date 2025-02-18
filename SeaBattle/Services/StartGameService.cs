@@ -14,7 +14,7 @@ namespace SeaBattleApi.Services
             var configs = new List<GameModeConfig>();
 
             configs.Add(reader.ReadConfig(GameMode.StandartGameMode));
-            configs.Add(reader.ReadConfig(GameMode.LongGameMode));
+            //configs.Add(reader.ReadConfig(GameMode.LongGameMode));
 
             return configs;
         }

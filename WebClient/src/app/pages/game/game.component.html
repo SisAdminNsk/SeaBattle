@@ -1,0 +1,46 @@
+<div [hidden]="!isFetchingConfigs" *ngIf="isFetchingConfigs" class="loading-container">
+  <p>Загрузка данных...</p>
+  <mat-spinner></mat-spinner>
+</div>
+
+<div [hidden]="!isFetchingAccessToken" *ngIf="isFetchingAccessToken" class="loading-container">
+  <p>Загрузка данных...</p>
+  <mat-spinner></mat-spinner>
+</div>
+
+<div class="game-container" [hidden]="isFetchingConfigs">
+
+  <div class="game-status">
+    <p>{{ gameStatusMessage }}</p>
+    <div *ngIf="isGameStarted">
+      <p>{{playerTurnMessage}}</p>
+    </div>
+    <div *ngIf="isWaitingToStartGame">
+      <button class="custom-btn" (click)="startGame()" *ngIf="!isWaitingOpponent">
+        Найти противника</button>
+    </div>
+  </div>  
+
+  <div class="game-area">
+    <div class="game-field">
+      <h2>Ваше поле</h2>
+      <div class="game-field-container">
+        <app-game-fieild  
+          (shipPlaced)="onShipPlaced($event)"
+          (allShipPlaced)="onAllShipPlaced()">
+        </app-game-fieild>
+      </div>
+    </div>
+
+    <div *ngIf="!isWaitingToStartGame" class="ship-picker">
+        <app-ship-picker (shipPicked)="onShipPicked($event)"></app-ship-picker>
+    </div>
+    
+    <div class="enemy-field">
+      <h2>Поле противника</h2>
+      <app-enemy-game-field 
+        (cellClicked)="onEnemyFieldClicked($event)">
+      </app-enemy-game-field>
+    </div>
+  </div>
+</div>

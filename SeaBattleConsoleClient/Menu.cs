@@ -7,9 +7,14 @@ namespace SeaBattleConsoleClient
         private Game _currentGame;
         private GameModeConfig _gameMode;
 
-        public Menu(GameModeConfig gameMode)
+        private string _serverAddress;
+        private string _serverPort;
+
+        public Menu(GameModeConfig gameMode, string serverAddress, string serverPort)
         {
             _gameMode = gameMode;
+            _serverAddress = serverAddress;
+            _serverPort = serverPort;
         }
 
         public async Task ShowMenuAsync()
@@ -53,7 +58,7 @@ namespace SeaBattleConsoleClient
                 return;
             }
 
-            _currentGame = new Game(_gameMode);
+            _currentGame = new Game(_gameMode, _serverAddress, _serverPort);
 
             _currentGame.CriticalErrorOccured += OnGameCriticalErrorOccured;
             _currentGame.GameFinished += OnGameFinished;

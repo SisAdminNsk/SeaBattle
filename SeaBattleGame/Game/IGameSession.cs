@@ -1,6 +1,7 @@
 ﻿using SeaBattleGame.Player;
 
 using SeaBattleGame.Game.Responses;
+using SeaBattleGame.Map.MapResponses;
 
 namespace SeaBattleGame.Game
 {
@@ -10,7 +11,7 @@ namespace SeaBattleGame.Game
 
         delegate Task OnGameSessionStarted(IGameSession sender, List<IGamePlayer> players, IGamePlayer playerTurn);
         delegate Task OnPlayerTurnTimeHasPassed(IGameSession sender, IGamePlayer player);
-        delegate Task OnGameSessionFinished(IGameSession sender, IGamePlayer? winnerPlayer);
+        delegate Task OnGameSessionFinished(IGameSession sender, IGamePlayer? winnerPlayer, HitGameMapResponse? hitGameMapResponse);
         delegate Task OnPlayerHit(IGameSession sender, IGamePlayer player, PlayerHitResponse playerHitResponse);
 
         event OnGameSessionStarted GameSessionStarted;

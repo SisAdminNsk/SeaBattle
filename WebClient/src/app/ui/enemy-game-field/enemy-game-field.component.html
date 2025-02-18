@@ -1,0 +1,31 @@
+<div class="sea-battle-field">
+    <table>
+      <!-- Нумерация столбцов -->
+      <tr>
+        <td class="corner-cell"></td> 
+        <td *ngFor="let col of [].constructor(size); let colIndex = index" class="header-cell">
+          {{ colIndex + 1 }} 
+        </td>
+      </tr>
+  
+      <tr *ngFor="let row of grid; let rowIndex = index">
+        <td class="header-cell">
+          {{ getLetter(rowIndex) }} <!-- Буквы (A-J) -->
+        </td>
+  
+        <td
+          *ngFor="let cell of row; let colIndex = index"
+          [ngClass]="{
+            'ship': cell.isShip,
+            'hit': cell.isHit,
+            'miss': cell.isMiss,
+            'dead-body': cell.isDeadBody,
+            'disabled': !isGameStarted
+          }"
+          (click)="isGameStarted ? onCellClick(rowIndex, colIndex) : null"
+        >
+        {{ cell.isDeadBody ? '💥' : (cell.isHit ? '💥' : (cell.isMiss ? '🌊' : '')) }}
+        </td>
+      </tr>
+    </table>
+  </div>

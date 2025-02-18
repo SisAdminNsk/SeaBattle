@@ -114,7 +114,7 @@ namespace SeaBattleGame.Map
                         ship.Killed = true;
 
                         FillDestroyedShipArea(ship);
-                        InvokeEventIfAllShipsDestroyed();
+                        InvokeEventIfAllShipsDestroyed(hitResponse);
                     }
                 }
                 else
@@ -130,7 +130,7 @@ namespace SeaBattleGame.Map
             return new HitGameMapResponse("Все корабли уже уничтожены.");
         }
 
-        private void InvokeEventIfAllShipsDestroyed()
+        private void InvokeEventIfAllShipsDestroyed(HitGameMapResponse hitGameMapResponse)
         {
             foreach (var ship in GameMapBody.ShipToLocation.Keys) 
             {
@@ -142,7 +142,7 @@ namespace SeaBattleGame.Map
 
             _isAllShipsDestroyed = true;
 
-            AllShipsDestroyed?.Invoke(this);
+            AllShipsDestroyed?.Invoke(this, hitGameMapResponse);
         }
 
         public bool IsShipDestroyed(Ship ship)
@@ -270,12 +270,6 @@ namespace SeaBattleGame.Map
             _isAllShipsPlaced = true;
 
             response.Success = true;
-
-            //foreach(var ship in ships)
-            //{
-            //    var shipAddedResponse = new ShipAddedResponse(ship, true, GetShipLocation(ship));
-            //    response.Ships.Add(shipAddedResponse);
-            //}
 
             return response;
         }

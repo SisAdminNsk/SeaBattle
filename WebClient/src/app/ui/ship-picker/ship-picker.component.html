@@ -1,0 +1,23 @@
+<div class="ships-picker">
+    <div *ngFor="let ship of ships" class="ship-item">
+      <button (click)="selectShip(ship)" [disabled]="ship.count === 0">
+        {{ ship.size }} палубный корабль
+      </button>
+      <span>Осталось: {{ ship.count }}</span>
+    </div>
+    <div *ngIf="selectedShip">
+      <p>Выбран корабль: {{ selectedShip.size }} палубный</p>
+        <button *ngIf="selectedShip.size > 1" (click)="toggleOrientation()">
+          {{ isHorizontal ? 'Горизонтально' : 'Вертикально' }}
+        </button>
+      <div
+        class="ship-preview"
+        [class.horizontal]="isHorizontal"
+        [class.vertical]="!isHorizontal"
+        draggable="true"
+        (dragstart)="onDragStart($event, selectedShip)"
+      >
+        <div *ngFor="let part of [].constructor(selectedShip.size)" class="ship-part"></div>
+      </div>
+    </div>
+</div>

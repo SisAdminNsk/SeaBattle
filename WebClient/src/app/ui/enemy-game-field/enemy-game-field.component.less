@@ -1,0 +1,48 @@
+@ship-color: #ccc;
+@hit-color: #ff4444;
+@miss-color: #99ccff;
+@border-color: #000;
+@dead-body-color: #565252;
+
+.sea-battle-field {
+  table {
+    border-collapse: collapse;
+    margin: 0 auto;
+  }
+
+  td {
+    width: 30px;
+    height: 30px;
+    border: 1px solid @border-color;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+
+    &.ship {
+      background-color: @ship-color;
+    }
+
+    &.hit {
+      background-color: @hit-color;
+    }
+
+    &.miss {
+      background-color: @miss-color;
+    }
+
+    &.dead-body{
+        background-color: @dead-body-color;
+    }
+
+    &.header-cell {
+      background-color: #f0f0f0; 
+      font-weight: bold; 
+      cursor: default; 
+    }
+
+    &.corner-cell {
+      background-color: #f0f0f0; 
+      border: none; 
+    }
+  }
+}

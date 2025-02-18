@@ -7,7 +7,12 @@ namespace SeaBattleConsoleClient
     {
         static async Task Main(string[] args)
         {
-            var startGameConfig = await GetGameConfuration();
+            Console.WriteLine("Введите ip адресс сервера");
+            var serverAddress = Console.ReadLine();
+            Console.WriteLine("Введите порт сервера");
+            var serverPort = Console.ReadLine();
+
+            var startGameConfig = await GetGameConfuration(serverAddress, serverPort);
 
             if (startGameConfig == null)
             {
@@ -15,15 +20,15 @@ namespace SeaBattleConsoleClient
                 return;
             }
 
-            Menu menu = new Menu(startGameConfig);
+            Menu menu = new Menu(startGameConfig, serverAddress, serverPort);
 
             await menu.ShowMenuAsync();
         }
-        private static async Task<GameModeConfig?> GetGameConfuration()
+        private static async Task<GameModeConfig?> GetGameConfuration(string serverAddress, string serverPort)
         {
             List<GameModeConfig> gameConfigurations = new();
 
-            using (ISeaBattleHttpClient httpClient = new SeaBattleHttpClient())
+            using (ISeaBattleHttpClient httpClient = new SeaBattleHttpClient(serverAddress, serverPort))
             {
                 var erorrOrGameConfigurations = await httpClient.GetAllConfigsAsync();
 

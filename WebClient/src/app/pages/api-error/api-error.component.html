@@ -1,0 +1,11 @@
+<div class="error-container">
+    <h1>Упс... Произошла ошибка.</h1>
+
+     <p *ngIf="errorMessage" class="error-message">
+        Сообщение: {{ errorMessage }}
+    </p>
+    <p>Почта для связи с нами: <a href="mailto:v.v.rakov&#64;mail.ru">v.v.rakov&#64;mail.ru</a></p>
+    <p>
+        <button (click)="goToHomePage()" class="custom-btn">Вернуться на главную</button>
+    </p>
+</div>

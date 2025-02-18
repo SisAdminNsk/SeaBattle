@@ -56,15 +56,15 @@ namespace SeaBattleGame.Game
             return _isFinished;
         }
 
-        private void AllShipsDestroyed(IGameMap sender)
+        private void AllShipsDestroyed(IGameMap sender, HitGameMapResponse hitGameMapResponse)
         {
             if (sender.Equals(_player1Map))
             {
-                Stop(_player2);
+                Stop(_player2, hitGameMapResponse);
             }
             else
             {
-                Stop(_player1);
+                Stop(_player1, hitGameMapResponse);
             }
         }
 
@@ -178,22 +178,22 @@ namespace SeaBattleGame.Game
             GameSessionStarted?.Invoke(this, new List<IGamePlayer> { _player1, _player2 }, _player1);
         }
 
-        public void Stop(IGamePlayer winnerPlayer)
+        public void Stop(IGamePlayer winnerPlayer, HitGameMapResponse hitGameMapResponse)
         {
             _isFinished = true;
 
-            Dispose();
+            GameSessionFinished?.Invoke(this, winnerPlayer, hitGameMapResponse); 
 
-            GameSessionFinished?.Invoke(this, winnerPlayer);
+            Dispose();
         }
 
         public void Stop()
         {
             _isFinished = true;
 
-            Dispose();
+            GameSessionFinished?.Invoke(this, null, null);
 
-            GameSessionFinished?.Invoke(this, null);
+            Dispose();
         }
 
         public void Dispose()

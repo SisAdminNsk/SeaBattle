@@ -9,11 +9,11 @@ namespace SeaBattleConsoleClient.ServerCommunication
     {
         private readonly HttpClient _httpClient;
         private bool _disposed = false;
-        public SeaBattleHttpClient()
+        public SeaBattleHttpClient(string serverAddress, string serverPort)
         {
             _httpClient = new HttpClient();
 
-            _httpClient.BaseAddress = new Uri("http://localhost:5024/Game/");
+            _httpClient.BaseAddress = new Uri($"http://{serverAddress}:{serverPort}/Game/");
         }
 
         public async Task<ErrorOr<List<GameModeConfig>>> GetAllConfigsAsync()

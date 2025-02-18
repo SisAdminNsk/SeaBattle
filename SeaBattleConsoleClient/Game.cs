@@ -27,18 +27,25 @@ namespace SeaBattleConsoleClient
 
         private bool _gameRunning = false;
 
-        public Game(GameModeConfig gameMode)
+        private string _serverAddress;
+        private string _serverPort;
+
+        public Game(GameModeConfig gameMode, string serverAddress, string serverPort)
         {
             _gameMode = gameMode;
             _gameMap = new GameMap(gameMode);
             _oponnentMap = new OponnentMap(gameMode.GameMapSize);
+
+            _serverAddress = serverAddress;
+            _serverPort = serverPort;
         }
 
         public async Task StartGameAsync()
         {
             var playerGameMapRequest = ArrangeShipsOnMap();
 
-            var startGameAccessToken = await GetStartGameAcessTokenAsync(playerGameMapRequest);
+
+            var startGameAccessToken = await GetStartGameAcessTokenAsync(playerGameMapRequest, _serverAddress, _serverPort);
 
             if (startGameAccessToken == null)
             {
@@ -46,7 +53,7 @@ namespace SeaBattleConsoleClient
             }
             else
             {
-                var uri = new Uri($"ws://localhost:5024/Game/StartGame?startGameAccessToken={Uri.EscapeDataString(startGameAccessToken)}");
+                var uri = new Uri($"ws://{_serverAddress}:{_serverPort}/Game/StartGame?startGameAccessToken={Uri.EscapeDataString(startGameAccessToken)}");
 
                 using (var socket = new ClientWebSocket())
                 {
@@ -281,9 +288,9 @@ namespace SeaBattleConsoleClient
             }
         }
 
-        private async Task<string?> GetStartGameAcessTokenAsync(PlayerGameMapRequest playerGameMapRequest)
+        private async Task<string?> GetStartGameAcessTokenAsync(PlayerGameMapRequest playerGameMapRequest, string serverAddress, string serverPort)
         {
-            using (ISeaBattleHttpClient httpClient = new SeaBattleHttpClient())
+            using (ISeaBattleHttpClient httpClient = new SeaBattleHttpClient(serverAddress, serverPort))
             {
                 Console.WriteLine("Выполняется проверка карты...");
                 var errorOrValidateGameMapResponse = await httpClient.TryValidateGameMapAsync(playerGameMapRequest);

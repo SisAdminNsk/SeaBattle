@@ -1,0 +1,113 @@
+@ship-color: #ccc;
+@hit-color: #ff4444;
+@miss-color: #99ccff;
+@border-color: #000;
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  transition: opacity 0.3s ease; 
+}
+
+.game-status {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: bold;
+
+  &[hidden] {
+    display: block !important; 
+    opacity: 0;
+    pointer-events: none; 
+  }
+
+  .custom-btn{
+    background-color: #007bff; 
+    color: white; 
+    border: none; 
+    padding: 10px 20px; 
+    border-radius: 25px; 
+    font-size: 16px; 
+    cursor: pointer;
+    transition: background-color 0.3s ease; 
+  } 
+
+  .custom-btn:hover {
+    background-color: #0056b3; 
+  }
+}
+
+.game-area {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.game-field, .enemy-field {
+  flex: 1;
+  margin: 0 10px;
+  text-align: center;
+
+  .sea-battle-field {
+    table {
+      border-collapse: collapse;
+      margin: 0 auto;
+    }
+
+    td {
+      width: 30px;
+      height: 30px;
+      border: 1px solid @border-color;
+      text-align: center;
+      vertical-align: middle;
+      cursor: pointer;
+
+      &.ship {
+        background-color: @ship-color;
+      }
+
+      &.hit {
+        background-color: @hit-color;
+      }
+
+      &.miss {
+        background-color: @miss-color;
+      }
+    }
+  }
+}
+
+.ship-picker {
+  flex: 0 0 300px; 
+  margin: 0 10px;
+  text-align: center;
+}
+
+h2 {
+  margin-bottom: 10px;
+  font-size: 24px;
+}
+
+.loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.9); 
+  z-index: 1000; 
+  
+  p {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+  }
+}
