@@ -23,7 +23,7 @@ namespace SeaBattle
 
             string LocalIp = GetLocalIPAddress();
 
-            builder.WebHost.UseUrls("http://localhost:8084", "http://" + LocalIp + ":8084");
+            builder.WebHost.UseUrls("http://localhost:8084", "http://" + "*" + ":8084");
 
 
             var app = builder.Build();
@@ -39,7 +39,10 @@ namespace SeaBattle
 
             app.UseCors(builder =>
             {
-                builder.WithOrigins("http://localhost:4200") // Разрешить запросы с этого домена
+                var address = $"http://{GetLocalIPAddress()}:4200";
+                var address1 = $"http://25.29.173.214:4200";
+
+                builder.WithOrigins("http://localhost:4200", address, address1) // Разрешить запросы с этого домена
                        .AllowAnyHeader()
                        .AllowAnyMethod();
             });

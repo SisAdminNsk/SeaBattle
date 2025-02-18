@@ -25,7 +25,7 @@
     <div class="game-field">
       <h2>Ваше поле</h2>
       <div class="game-field-container">
-        <app-game-fieild  
+        <app-game-fieild
           (shipPlaced)="onShipPlaced($event)"
           (allShipPlaced)="onAllShipPlaced()">
         </app-game-fieild>
@@ -36,9 +36,9 @@
         <app-ship-picker (shipPicked)="onShipPicked($event)"></app-ship-picker>
     </div>
     
-    <div class="enemy-field">
+    <div class="enemy-field" [ngClass]="{'highlight-blue': isGameStarted && !isOpponentTurn}">
       <h2>Поле противника</h2>
-      <app-enemy-game-field 
+      <app-enemy-game-field
         (cellClicked)="onEnemyFieldClicked($event)">
       </app-enemy-game-field>
     </div>

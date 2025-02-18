@@ -177,7 +177,6 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
     let baseApiUrl = this.apiAddressSerivce.getBaseApiAddress();
 
-    //const url = `ws://localhost:8084/Game/StartGame?startGameAccessToken=${encodeURIComponent(accessToken)}`;
     const url = `ws://${baseApiUrl}/Game/StartGame?startGameAccessToken=${encodeURIComponent(accessToken)}`;
 
     this.wsService.connect(url);
@@ -302,6 +301,10 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
   private handlePlayerHitResponse(response: PlayerHitResponse): void{
 
+    if(!response.Success){
+      return;
+    }
+
     this.isWaitingServerResponse = false;
     
     if(!response.Success){
@@ -318,10 +321,10 @@ export class GameComponent implements AfterViewInit, OnDestroy {
       this.isOpponentTurn = true;
     }
 
-    if(!response.HitGameMapResponse.Success){
-      let errorMessage = 'Возникла ошибка при получении ответа с сервера. (GameMapResponse)';
-      this.redirectToApiErrorPage(errorMessage);
-    }
+   // if(!response.HitGameMapResponse.Success){
+      //let errorMessage = 'Возникла ошибка при получении ответа с сервера. (GameMapResponse)';
+   //   //this.redirectToApiErrorPage(errorMessage);
+   // }
 
     let hittedCell = response.HitGameMapResponse.HittedCell;
 
